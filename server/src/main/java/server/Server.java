@@ -31,15 +31,7 @@ public class Server {
                 .delete("/session", this::logout)
                 .get("/game", this::listGames)
                 .post("/game", this::createGame)
-                .put("/game", this::joinGame)
-//                .error(404, this::notFound)
-
-
-
-        ;
-
-        // Register your endpoints and exception handlers here.
-
+                .put("/game", this::joinGame);
     }
 
     public int run(int desiredPort) {
