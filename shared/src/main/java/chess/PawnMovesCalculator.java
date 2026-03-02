@@ -24,8 +24,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
             if (newCol >=1 && newCol < 9) {
                 ChessPosition newPosition = new ChessPosition(newRow, newCol);
                 ChessPiece targetPiece = board.getPiece(newPosition);
-                if (mov == 0) {
-                    if (targetPiece == null) {
+                if (mov == 0 && targetPiece == null) {
                         if (newRow == 8 || newRow == 1) {
                             for (ChessPiece.PieceType p : promotionList) {
                                 possibleMoves.add(new ChessMove(myPosition,newPosition,p));
@@ -44,24 +43,25 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
                             if (targetPiece == null) {
                                 possibleMoves.add(new ChessMove(myPosition,newPosition,null));
                             }
-
                         }
-
-                    }
-                } else {
-                    if (targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) {
-                        if (newRow == 8 || newRow == 1) {
-                            for (ChessPiece.PieceType p : promotionList) {
-                                possibleMoves.add(new ChessMove(myPosition,newPosition,p));
-                            }
-                        }
-                        else {
-                            possibleMoves.add(new ChessMove(myPosition, newPosition, null));
-                        }
-                    }
+                } else if (mov != 0){
+                    diagonalMoves(myPosition, targetPiece, myPiece, newRow, promotionList, possibleMoves, newPosition);
                 }
             }
         }
         return possibleMoves;
+    }
+
+    private static void diagonalMoves(ChessPosition myPosition, ChessPiece targetPiece, ChessPiece myPiece, int newRow, ChessPiece.PieceType[] promotionList, List<ChessMove> possibleMoves, ChessPosition newPosition) {
+        if (targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) {
+            if (newRow == 8 || newRow == 1) {
+                for (ChessPiece.PieceType p : promotionList) {
+                    possibleMoves.add(new ChessMove(myPosition, newPosition,p));
+                }
+            }
+            else {
+                possibleMoves.add(new ChessMove(myPosition, newPosition, null));
+            }
+        }
     }
 }
