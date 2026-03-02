@@ -32,7 +32,7 @@ public class GameDataMem implements GameDataAccess {
 
     }
 
-    public void clearGames() throws DataAccessException {
+    public void clearGames(){
         games.clear();
     }
 }

@@ -13,10 +13,7 @@ public class AuthDataMem implements AuthDataAccess {
     }
 
     public AuthData getAuth(String authToken) throws DataAccessException {
-        AuthData authData = auths.get(authToken);
-        if (authData == null) {
-            throw new DataAccessException("AuthData not found");
-        } else return authData;
+        return auths.get(authToken);
 
     }
 

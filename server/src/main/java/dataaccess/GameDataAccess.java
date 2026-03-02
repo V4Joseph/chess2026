@@ -9,5 +9,5 @@ public interface GameDataAccess {
     GameData getGame(int GameID) throws DataAccessException;
     Collection<GameData> listGames() throws DataAccessException;
     void updateGame(int GameID) throws DataAccessException;
-    void clearGames() throws DataAccessException;
+    void clearGames();
 }

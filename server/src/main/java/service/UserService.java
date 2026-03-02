@@ -20,10 +20,13 @@ public class UserService {
         this.authDataAccess = authDataAccess;
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException{
+    public RegisterResult register(RegisterRequest registerRequest) throws ServiceException, DataAccessException{
+        if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
+            throw new ServiceException("Error: bad request", 400);
+        }
         UserData userData = userDataAccess.getUser(registerRequest.username());
         if (userData != null) {
-            throw new DataAccessException("Error: username already taken");
+            throw new ServiceException("Error: already taken", 403);
         } else {
             userData = new UserData(registerRequest.username(),registerRequest.password(),registerRequest.email());
             userDataAccess.createUser(userData);
@@ -33,21 +36,27 @@ public class UserService {
             return new RegisterResult(authData.username(),authToken);
         }
     }
-    public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
+    public LoginResult login(LoginRequest loginRequest) throws DataAccessException, ServiceException{
+        if (loginRequest.username() == null || loginRequest.password() == null) {
+            throw new ServiceException("Error: bad request", 400);
+        }
         UserData userData = userDataAccess.getUser(loginRequest.username());
-        if (userData == null) {
-            throw new DataAccessException("Username not found");
-        } else if (!Objects.equals(userData.password(), loginRequest.password())){
-            throw new DataAccessException("Password does not match");
-        } else {
+        if (userData == null || !Objects.equals(userData.password(), loginRequest.password())) {
+            throw new ServiceException("Error: unauthorized", 401);
+        }  else {
             String authToken = generateToken();
             authDataAccess.createAuth(new AuthData(authToken,loginRequest.username()));
             return new LoginResult(loginRequest.username(),authToken);
         }
     }
 
-    public void logout(LogoutRequest logoutRequest){
-        authDataAccess.deleteAuth(logoutRequest.authToken());
+    public void logout(String authToken) throws DataAccessException, ServiceException{
+        if (authDataAccess.getAuth(authToken) == null) {
+            throw new ServiceException("Error: unauthorized",401);
+        } else {
+            authDataAccess.deleteAuth(authToken);
+        }
+
     }
 
     public static String generateToken() {
