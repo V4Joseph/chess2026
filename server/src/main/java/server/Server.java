@@ -76,8 +76,8 @@ public class Server {
         catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
 
@@ -90,8 +90,8 @@ public class Server {
         }catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
     }
@@ -106,8 +106,8 @@ public class Server {
         } catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
     }
@@ -122,8 +122,8 @@ public class Server {
         } catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
     }
@@ -136,8 +136,8 @@ public class Server {
         } catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
     }

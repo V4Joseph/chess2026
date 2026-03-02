@@ -16,7 +16,8 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
 
             step = -1;
         }
-        ChessPiece.PieceType[] promotionList = {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT};
+        ChessPiece.PieceType[] promotionList =
+                {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT};
         for (int mov : pawnMoves) {
             int newRow = row + step;
             int newCol = col + mov;
@@ -33,7 +34,10 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
                         else {
                             possibleMoves.add(new ChessMove(myPosition, newPosition, null));
                         }
-                        if (myPiece.getTeamColor() == ChessGame.TeamColor.WHITE && row == 2 || myPiece.getTeamColor() == ChessGame.TeamColor.BLACK && row == 7) {
+                        if (myPiece.getTeamColor() == ChessGame.TeamColor.WHITE &&
+                            row == 2 ||
+                            myPiece.getTeamColor() == ChessGame.TeamColor.BLACK &&
+                            row == 7) {
                             newRow = row + (step*2);
                             newPosition = new ChessPosition(newRow,col);
                             targetPiece = board.getPiece(newPosition);

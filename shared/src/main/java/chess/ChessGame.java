@@ -97,7 +97,10 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
-        if (gameBoard.getPiece(startPosition) == null || gameBoard.getPiece(startPosition).getTeamColor() != teamTurn) throw new InvalidMoveException("This move is invalid");
+        if (gameBoard.getPiece(startPosition) == null ||
+                gameBoard.getPiece(startPosition).getTeamColor() != teamTurn) {
+            throw new InvalidMoveException("This move is invalid");
+        }
         Collection<ChessMove> validMoveList = validMoves(startPosition);
         if (validMoveList.contains(move)) {
             makeTestMove(move);
@@ -154,12 +157,19 @@ public class ChessGame {
                 if (target != null && target.getTeamColor() != teamColor) {
                     Collection<ChessMove> moveList = new ArrayList<>();
                     moveList = target.pieceMoves(getBoard(),checkPosition);
-                    for (ChessMove move: moveList) {
-                        if (Objects.equals(move.getEndPosition(), kingPosition)) {
-                            return true;
-                        }
+                    if (checkMove(moveList, kingPosition)) {
+                        return true;
                     }
                 }
+            }
+        }
+        return false;
+    }
+
+    private static boolean checkMove(Collection<ChessMove> moveList, ChessPosition kingPosition) {
+        for (ChessMove move: moveList) {
+            if (Objects.equals(move.getEndPosition(), kingPosition)) {
+                return true;
             }
         }
         return false;
@@ -188,7 +198,9 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) return false;
+        if (isInCheck(teamColor)) {
+            return false;
+        }
         else {
             return validMovesChecker(teamColor);
         }
