@@ -1,4 +1,8 @@
 package service.RR_Classes;
 
-public record ListGamesResult() {
+import model.GameData;
+
+import java.util.Collection;
+
+public record ListGamesResult(Collection<GameData> games) {
 }

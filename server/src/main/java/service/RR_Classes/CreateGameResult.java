@@ -1,4 +1,4 @@
 package service.RR_Classes;
 
-public class CreateGameResult {
+public record CreateGameResult (int gameID) {
 }

@@ -1,20 +1,17 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.GameData;
 
 import java.util.Collection;
 import java.util.HashMap;
 
 public class GameDataMem implements GameDataAccess {
+    private int nextID = 1;
     final private HashMap<Integer, GameData> games = new HashMap<>();
 
-    public GameData createGame(GameData gameData) throws DataAccessException {
-        gameData = new GameData(gameData.gameID(),
-                gameData.whiteUsername(),
-                gameData.blackUsername(),
-                gameData.gameName(),
-                gameData.game());
-
+    public GameData createGame(String gameName) throws DataAccessException {
+        GameData gameData = new GameData(nextID++,null,null,gameName,new ChessGame());
         games.put(gameData.gameID(),gameData);
         return gameData;
     }
@@ -26,8 +23,10 @@ public class GameDataMem implements GameDataAccess {
         return games.values();
     }
 
-    public void updateGame(int gameID) throws DataAccessException {
+    public void updateGame(int gameID, GameData gameData) throws DataAccessException {
         // Unsure about this part
+        games.remove(gameID);
+        games.put(gameData.gameID(),gameData);
 
 
     }

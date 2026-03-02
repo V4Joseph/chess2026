@@ -4,10 +4,13 @@ import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
+import model.GameData;
+import service.GameService;
 import service.RR_Classes.*;
 import service.ServiceException;
 import service.UserService;
 
+import java.util.Collection;
 import java.util.Map;
 
 
@@ -18,6 +21,7 @@ public class Server {
     AuthDataAccess authDataAccess = new AuthDataMem();
     GameDataAccess gameDataAccess = new GameDataMem();
     UserService userService = new UserService(userDataAccess, authDataAccess);
+    GameService gameService = new GameService(userDataAccess,gameDataAccess,authDataAccess);
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -25,6 +29,9 @@ public class Server {
                 .delete("/db", this::delete)
                 .post("/session", this::login)
                 .delete("/session", this::logout)
+                .get("/game", this::listGames)
+                .post("/game", this::createGame)
+                .put("/game", this::joinGame)
 //                .error(404, this::notFound)
 
 
@@ -89,6 +96,52 @@ public class Server {
         try {
             userService.logout(authToken);
         }catch (ServiceException e){
+            int status = e.getStatus();
+            context.status(status);
+            String Msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", Msg));
+            context.json(body);
+        }
+    }
+
+    private void listGames(Context context) throws DataAccessException, ServiceException {
+        String authToken = context.header("authorization");
+        try{
+            Collection<GameData> games = gameService.listGames(authToken);
+            ListGamesResult listGamesResult = new ListGamesResult(games);
+            String json = new Gson().toJson(listGamesResult);
+            context.json(json);
+        } catch (ServiceException e){
+            int status = e.getStatus();
+            context.status(status);
+            String Msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", Msg));
+            context.json(body);
+        }
+    }
+
+    private void createGame(Context context) throws DataAccessException, ServiceException {
+        String authToken = context.header("authorization");
+        CreateGameRequest createGameRequest = getBodyObject(context, CreateGameRequest.class);
+        try {
+            CreateGameResult createGameResult = gameService.createGame(createGameRequest,authToken);
+            String json = new Gson().toJson(createGameResult);
+            context.json(json);
+        } catch (ServiceException e){
+            int status = e.getStatus();
+            context.status(status);
+            String Msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", Msg));
+            context.json(body);
+        }
+    }
+
+    private void joinGame(Context context) throws ServiceException, DataAccessException {
+        String authToken = context.header("authorization");
+        JoinGameRequest joinGameRequest = getBodyObject(context, JoinGameRequest.class);
+        try {
+            gameService.joinGame(joinGameRequest,authToken);
+        } catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
             String Msg = e.getMessage();

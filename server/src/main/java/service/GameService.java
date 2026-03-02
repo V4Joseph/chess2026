@@ -8,18 +8,15 @@ import dataaccess.UserDataAccess;
 import model.AuthData;
 import model.GameData;
 import service.RR_Classes.CreateGameRequest;
+import service.RR_Classes.CreateGameResult;
 import service.RR_Classes.JoinGameRequest;
 
 import java.util.Collection;
-import java.util.PriorityQueue;
 
 public class GameService {
     private final UserDataAccess userDataAccess;
     private final GameDataAccess gameDataAccess;
     private final AuthDataAccess authDataAccess;
-
-    private PriorityQueue<Integer> availableGameID = new PriorityQueue<>();
-    private int nextID = 0;
 
     public GameService (UserDataAccess userDataAccess,
                              GameDataAccess gameDataAccess,
@@ -34,39 +31,42 @@ public class GameService {
         return gameDataAccess.listGames();
     }
 
-    public int createGame(CreateGameRequest createGameRequest)throws DataAccessException {
-        AuthData authData = authorize(createGameRequest.authToken());
-            int ID;
-            // Need to implement removal of gameIDs
-            if (!availableGameID.isEmpty()){
-                ID = availableGameID.poll();
-            } else {
-                ID = nextID++;
-            }
-            GameData gameData = new GameData(ID,
-                    null,
-                    null,
-                    createGameRequest.gameName(),
-                    new ChessGame());
-            gameDataAccess.createGame(gameData);
-            return ID;
+    public CreateGameResult createGame(CreateGameRequest createGameRequest, String authToken)throws DataAccessException {
+        if (authToken == null || createGameRequest.gameName() == null) {
+            throw new ServiceException("Error: bad request", 400);
+        }
+        AuthData authData = authorize(authToken);
+        GameData gameData = gameDataAccess.createGame(createGameRequest.gameName());
+        return new CreateGameResult(gameData.gameID());
 
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest) throws DataAccessException {
-        AuthData authData = authorize(joinGameRequest.authToken());
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws DataAccessException {
+        // Null parameters
+        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.gameID() == null) {
+            throw new ServiceException("Error: bad request", 400);
+        }
+        boolean equalsWhite = joinGameRequest.playerColor().equals(ChessGame.TeamColor.WHITE.name());
+        boolean equalsBlack = joinGameRequest.playerColor().equals(ChessGame.TeamColor.BLACK.name());
+        // Not WHITE/BLACK for playerColor
+        if (!(equalsWhite || equalsBlack)) {
+            throw new ServiceException("Error: bad request",400);
+        }
+        AuthData authData = authorize(authToken);
         GameData gameData = gameDataAccess.getGame(joinGameRequest.gameID());
+        // Game not found
         if (gameData == null) {
-            throw new DataAccessException("Game not found");
+            throw new ServiceException("Error: unauthorized",401);
         } else {
-            if (joinGameRequest.color().equalsIgnoreCase("WHITE") && gameData.whiteUsername() == null) {
-
-                gameDataAccess.updateGame(joinGameRequest.gameID());
-            } else if (joinGameRequest.color().equalsIgnoreCase("BLACK") && gameData.blackUsername() == null) {
-
-                gameDataAccess.updateGame(joinGameRequest.gameID());
+            if (equalsWhite && gameData.whiteUsername() == null) {
+                GameData newGameData = new GameData(gameData.gameID(), authData.username(), gameData.blackUsername(),gameData.gameName(),gameData.game());
+                gameDataAccess.updateGame(joinGameRequest.gameID(),newGameData);
+            } else if (equalsBlack && gameData.blackUsername() == null) {
+                GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(),authData.username(),gameData.gameName(),gameData.game());
+                gameDataAccess.updateGame(joinGameRequest.gameID(),newGameData);
             } else {
-                throw new DataAccessException("Color already taken");
+                // Color already taken
+                throw new ServiceException("Error: already taken", 403);
             }
 
 
@@ -76,7 +76,7 @@ public class GameService {
     public AuthData authorize(String authToken) throws DataAccessException{
         AuthData authData = authDataAccess.getAuth(authToken);
         if (authData == null) {
-            throw new DataAccessException("Unauthorized Request");
+            throw new ServiceException("Error: unauthorized", 401);
         }
         else return authData;
     }
