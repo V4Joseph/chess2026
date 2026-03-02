@@ -5,7 +5,7 @@ import dataaccess.DataAccessException;
 import dataaccess.UserDataAccess;
 import model.AuthData;
 import model.UserData;
-import service.RR_Classes.*;
+import service.requestsandresults.*;
 
 import java.util.Objects;
 import java.util.UUID;

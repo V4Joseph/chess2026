@@ -7,9 +7,9 @@ import dataaccess.GameDataAccess;
 import dataaccess.UserDataAccess;
 import model.AuthData;
 import model.GameData;
-import service.RR_Classes.CreateGameRequest;
-import service.RR_Classes.CreateGameResult;
-import service.RR_Classes.JoinGameRequest;
+import service.requestsandresults.CreateGameRequest;
+import service.requestsandresults.CreateGameResult;
+import service.requestsandresults.JoinGameRequest;
 
 import java.util.Collection;
 
@@ -59,10 +59,18 @@ public class GameService {
             throw new ServiceException("Error: unauthorized",401);
         } else {
             if (equalsWhite && gameData.whiteUsername() == null) {
-                GameData newGameData = new GameData(gameData.gameID(), authData.username(), gameData.blackUsername(),gameData.gameName(),gameData.game());
+                GameData newGameData = new GameData(gameData.gameID(),
+                        authData.username(),
+                        gameData.blackUsername(),
+                        gameData.gameName(),
+                        gameData.game());
                 gameDataAccess.updateGame(joinGameRequest.gameID(),newGameData);
             } else if (equalsBlack && gameData.blackUsername() == null) {
-                GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(),authData.username(),gameData.gameName(),gameData.game());
+                GameData newGameData = new GameData(gameData.gameID(),
+                        gameData.whiteUsername(),
+                        authData.username(),
+                        gameData.gameName(),
+                        gameData.game());
                 gameDataAccess.updateGame(joinGameRequest.gameID(),newGameData);
             } else {
                 // Color already taken
@@ -78,7 +86,9 @@ public class GameService {
         if (authData == null) {
             throw new ServiceException("Error: unauthorized", 401);
         }
-        else return authData;
+        else {
+            return authData;
+        }
     }
 
 

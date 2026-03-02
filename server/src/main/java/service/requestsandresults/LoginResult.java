@@ -1,4 +1,4 @@
-package service.RR_Classes;
+package service.requestsandresults;
 
 public record LoginResult(String username,
                           String authToken) {

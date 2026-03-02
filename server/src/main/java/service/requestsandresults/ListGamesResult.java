@@ -1,4 +1,4 @@
-package service.RR_Classes;
+package service.requestsandresults;
 
 import model.GameData;
 

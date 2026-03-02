@@ -1,17 +1,13 @@
 package service;
 
-import com.google.gson.Gson;
 import dataaccess.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import service.RR_Classes.LoginRequest;
-import service.RR_Classes.LoginResult;
-import service.RR_Classes.RegisterRequest;
-import service.RR_Classes.RegisterResult;
-import service.UserService;
-
-import java.util.Map;
+import service.requestsandresults.LoginRequest;
+import service.requestsandresults.LoginResult;
+import service.requestsandresults.RegisterRequest;
+import service.requestsandresults.RegisterResult;
 
 
 public class UserServiceTests {

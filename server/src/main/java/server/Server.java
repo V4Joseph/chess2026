@@ -6,7 +6,7 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import model.GameData;
 import service.GameService;
-import service.RR_Classes.*;
+import service.requestsandresults.*;
 import service.ServiceException;
 import service.UserService;
 
@@ -53,8 +53,8 @@ public class Server {
         catch (ServiceException e){
             int status = e.getStatus();
             context.status(status);
-            String Msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", Msg));
+            String msg = e.getMessage();
+            var body = new Gson().toJson(Map.of("message", msg));
             context.json(body);
         }
     }

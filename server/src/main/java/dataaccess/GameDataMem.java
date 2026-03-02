@@ -15,8 +15,8 @@ public class GameDataMem implements GameDataAccess {
         games.put(gameData.gameID(),gameData);
         return gameData;
     }
-    public GameData getGame(int GameID) throws DataAccessException {
-        return games.get(GameID);
+    public GameData getGame(int gameID) throws DataAccessException {
+        return games.get(gameID);
     }
 
     public Collection<GameData> listGames() throws DataAccessException {
