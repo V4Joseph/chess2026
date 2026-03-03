@@ -28,7 +28,16 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
         return possibleMoves;
     }
 
-    private static void movePawn(ChessBoard board, ChessPosition myPosition, int mov, int newRow, int newCol, ChessPiece.PieceType[] promotionList, List<ChessMove> possibleMoves, ChessPiece myPiece, int row, int step, int col) {
+    private static void movePawn(ChessBoard board,
+                                 ChessPosition myPosition,
+                                 int mov, int newRow,
+                                 int newCol,
+                                 ChessPiece.PieceType[] promotionList,
+                                 List<ChessMove> possibleMoves,
+                                 ChessPiece myPiece,
+                                 int row,
+                                 int step,
+                                 int col) {
         ChessPosition newPosition = new ChessPosition(newRow, newCol);
         ChessPiece targetPiece = board.getPiece(newPosition);
         if (mov == 0 && targetPiece == null) {
@@ -38,7 +47,16 @@ public class PawnMovesCalculator implements PieceMovesCalculator{
         }
     }
 
-    private static void forwardMove(ChessBoard board, ChessPosition myPosition, int newRow, ChessPiece.PieceType[] promotionList, List<ChessMove> possibleMoves, ChessPosition newPosition, ChessPiece myPiece, int row, int step, int col) {
+    private static void forwardMove(ChessBoard board,
+                                    ChessPosition myPosition,
+                                    int newRow,
+                                    ChessPiece.PieceType[] promotionList,
+                                    List<ChessMove> possibleMoves,
+                                    ChessPosition newPosition,
+                                    ChessPiece myPiece,
+                                    int row,
+                                    int step,
+                                    int col) {
         ChessPiece targetPiece;
         if (newRow == 8 || newRow == 1) {
             for (ChessPiece.PieceType p : promotionList) {
