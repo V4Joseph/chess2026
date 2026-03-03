@@ -51,12 +51,16 @@ public class Server {
             context.json(json);
         }
         catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
+    }
+
+    private static void errorStatus(Context context, ServiceException e) {
+        int status = e.getStatus();
+        context.status(status);
+        String msg = e.getMessage();
+        var body = new Gson().toJson(Map.of("message", msg));
+        context.json(body);
     }
 
     private void delete(Context context) {
@@ -74,11 +78,7 @@ public class Server {
             context.json(json);
         }
         catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
 
     }
@@ -88,11 +88,7 @@ public class Server {
         try {
             userService.logout(authToken);
         }catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
     }
 
@@ -104,11 +100,7 @@ public class Server {
             String json = new Gson().toJson(listGamesResult);
             context.json(json);
         } catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
     }
 
@@ -120,11 +112,7 @@ public class Server {
             String json = new Gson().toJson(createGameResult);
             context.json(json);
         } catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
     }
 
@@ -134,11 +122,7 @@ public class Server {
         try {
             gameService.joinGame(joinGameRequest,authToken);
         } catch (ServiceException e){
-            int status = e.getStatus();
-            context.status(status);
-            String msg = e.getMessage();
-            var body = new Gson().toJson(Map.of("message", msg));
-            context.json(body);
+            errorStatus(context, e);
         }
     }
 
