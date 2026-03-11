@@ -12,18 +12,19 @@ import service.UserService;
 
 import java.util.Collection;
 import java.util.Map;
+import dataaccess.DataAccessException;
 
 
-public class Server {
+public class Server{
 
     private final Javalin javalin;
     UserDataAccess userDataAccess = new UserDataMem();
-    AuthDataAccess authDataAccess = new AuthDataMem();
+    AuthDataAccess authDataAccess = new AuthDataSql();
     GameDataAccess gameDataAccess = new GameDataMem();
     UserService userService = new UserService(userDataAccess, authDataAccess);
     GameService gameService = new GameService(userDataAccess,gameDataAccess,authDataAccess);
 
-    public Server() {
+    public Server(){
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user",this::register)
                 .delete("/db", this::delete)
@@ -63,7 +64,7 @@ public class Server {
         context.json(body);
     }
 
-    private void delete(Context context) {
+    private void delete(Context context) throws DataAccessException{
         userDataAccess.clearUsers();
         authDataAccess.clearAuths();
         gameDataAccess.clearGames();

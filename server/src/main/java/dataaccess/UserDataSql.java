@@ -2,34 +2,33 @@ package dataaccess;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import model.UserData;
 
 import java.sql.*;
 
 import static java.sql.Types.NULL;
 
-public class AuthDataSql implements AuthDataAccess{
-    public AuthDataSql(){
+public class UserDataSql implements UserDataAccess{
+    public UserDataSql(){
         try {
             configureDatabase();
         } catch (Exception e) {
-//            throw new DataAccessException(e.getMessage());
-        }
 
+        }
     }
-    public AuthData createAuth(AuthData authData) throws DataAccessException{
-        var statement = "INSERT INTO authData (authToken, username) VALUES (?, ?)";
-//        String json = new Gson().toJson(authData);
-        executeUpdate(statement,authData.authToken(),authData.username());
-        return new AuthData(authData.authToken(),authData.username());
+    public void createUser(UserData userData) throws DataAccessException {
+        var statement = "INSERT INTO userData (username, password, email) VALUES (?, ?)";
+        executeUpdate(statement,userData.username(),userData.password(),userData.email());
     }
-    public AuthData getAuth(String authToken) throws DataAccessException {
+
+    public UserData getUser(String username) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, json FROM authData WHERE authToken=?";
+            var statement = "SELECT username, password, email FROM userData WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ps.setString(1,authToken);
+                ps.setString(1,username);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return readAuth(rs);
+                        return readUser(rs);
                     }
                 }
             }
@@ -38,20 +37,17 @@ public class AuthDataSql implements AuthDataAccess{
         }
         return null;
     }
-    public void deleteAuth(String authToken) throws DataAccessException{
-        var statement = "DELETE FROM authData WHERE authToken=?";
-        executeUpdate(statement,authToken);
-    }
-    public void clearAuths() throws DataAccessException{
-        var statement = "TRUNCATE authData";
+
+    public void clearUsers() throws DataAccessException{
+        var statement = "TRUNCATE userData";
         executeUpdate(statement);
     }
 
-    private AuthData readAuth(ResultSet rs) throws SQLException {
-        var authToken = rs.getString("authToken");
+    private UserData readUser(ResultSet rs) throws SQLException {
         var username = rs.getString("username");
-        AuthData authData = new AuthData(authToken,username);
-        return authData;
+        var password = rs.getString("password");
+        var email = rs.getString("email");
+        return new UserData(username,password,email);
     }
 
     private void executeUpdate(String statement, Object... params) throws DataAccessException{
@@ -77,12 +73,14 @@ public class AuthDataSql implements AuthDataAccess{
     }
 
     private final String[] createStatements = {
-        """
-        CREATE TABLE IF NOT EXISTS authData (
-        'authToken' varchar(256),
+            """
+        CREATE TABLE IF NOT EXISTS userData (
         'username' varchar(256),
-        PRIMARY KEY ('authToken'),
-        INDEX(username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+        'password' varchar(256),
+        'email' varchar(256),
+        PRIMARY KEY ('username'),
+        INDEX(password),
+        INDEX(email) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
         """
     };
 
