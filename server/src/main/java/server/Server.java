@@ -18,7 +18,7 @@ import dataaccess.DataAccessException;
 public class Server{
 
     private final Javalin javalin;
-    UserDataAccess userDataAccess = new UserDataMem();
+    UserDataAccess userDataAccess = new UserDataSql();
     AuthDataAccess authDataAccess = new AuthDataSql();
     GameDataAccess gameDataAccess = new GameDataMem();
     UserService userService = new UserService(userDataAccess, authDataAccess);
