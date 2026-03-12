@@ -10,21 +10,21 @@ import static java.sql.Types.NULL;
 public class AuthDataSql implements AuthDataAccess{
     public AuthDataSql(){
         try {
-            configureDatabase();
+            DatabaseManager.configureDatabase();
         } catch (Exception e) {
-//            throw new DataAccessException(e.getMessage());
+            throw new RuntimeException("Failed database configuration");
         }
 
     }
+
     public AuthData createAuth(AuthData authData) throws DataAccessException{
-        var statement = "INSERT INTO authData (authToken, username) VALUES (?, ?)";
-//        String json = new Gson().toJson(authData);
-        executeUpdate(statement,authData.authToken(),authData.username());
+        var statement = "INSERT INTO authdata (authToken, username) VALUES (?, ?)";
+        DatabaseManager.executeUpdate(statement,authData.authToken(),authData.username());
         return new AuthData(authData.authToken(),authData.username());
     }
     public AuthData getAuth(String authToken) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, json FROM authData WHERE authToken=?";
+            var statement = "SELECT authToken, username FROM authdata WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1,authToken);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -39,12 +39,12 @@ public class AuthDataSql implements AuthDataAccess{
         return null;
     }
     public void deleteAuth(String authToken) throws DataAccessException{
-        var statement = "DELETE FROM authData WHERE authToken=?";
-        executeUpdate(statement,authToken);
+        var statement = "DELETE FROM authdata WHERE authToken=?";
+        DatabaseManager.executeUpdate(statement,authToken);
     }
     public void clearAuths() throws DataAccessException{
-        var statement = "TRUNCATE authData";
-        executeUpdate(statement);
+        var statement = "TRUNCATE authdata";
+        DatabaseManager.executeUpdate(statement);
     }
 
     private AuthData readAuth(ResultSet rs) throws SQLException {
@@ -52,50 +52,5 @@ public class AuthDataSql implements AuthDataAccess{
         var username = rs.getString("username");
         AuthData authData = new AuthData(authToken,username);
         return authData;
-    }
-
-    private void executeUpdate(String statement, Object... params) throws DataAccessException{
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    else if (param == null) ps.setNull(i + 1, NULL);
-                }
-                ps.executeUpdate();
-
-//                ResultSet rs = ps.getGeneratedKeys();
-//                if (rs.next()) {
-//                    return rs.getInt(1);
-//                }
-//
-//                return 0;
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
-        }
-    }
-
-    private final String[] createStatements = {
-        """
-        CREATE TABLE IF NOT EXISTS authData (
-        'authToken' varchar(256),
-        'username' varchar(256),
-        PRIMARY KEY ('authToken'),
-        INDEX(username)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-        """
-    };
-
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
-        }
     }
 }

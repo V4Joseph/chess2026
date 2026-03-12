@@ -3,6 +3,8 @@ package dataaccess;
 import java.sql.*;
 import java.util.Properties;
 
+import static java.sql.Types.NULL;
+
 public class DatabaseManager {
     private static String databaseName;
     private static String dbUsername;
@@ -73,5 +75,71 @@ public class DatabaseManager {
         var host = props.getProperty("db.host");
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+    }
+
+    static public void configureDatabase() throws DataAccessException {
+        createDatabase();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
+    static private final String[] createStatements = {
+            """
+        CREATE TABLE IF NOT EXISTS userdata (
+        `username` varchar(256),
+        `password` varchar(256),
+        `email` varchar(256),
+        PRIMARY KEY (`username`),
+        INDEX(email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+        """,
+            """
+        CREATE TABLE IF NOT EXISTS authdata (
+        `authToken` varchar(256),
+        `username` varchar(256),
+        PRIMARY KEY (`authToken`),
+        INDEX(username)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+        """,
+            """
+        CREATE TABLE IF NOT EXISTS gamedata (
+        `gameID` int NOT NULL AUTO_INCREMENT,
+        `whiteUsername` varchar(256),
+        `blackUsername` varchar(256),
+        `gameName` varchar(256) NOT NULL,
+        `json` TEXT DEFAULT NULL,
+        PRIMARY KEY (`gameID`),
+        INDEX(gameName)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+        """
+    };
+
+    static public int executeUpdate(String statement, Object... params) throws DataAccessException{
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
+                    Object param = params[i];
+                    if (param instanceof String p) ps.setString(i + 1, p);
+                    else if (param instanceof Integer p) ps.setInt(i+1, p);
+                    else if (param == null) ps.setNull(i + 1, NULL);
+                }
+                ps.executeUpdate();
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 }

@@ -20,9 +20,9 @@ public class Server{
     private final Javalin javalin;
     UserDataAccess userDataAccess = new UserDataSql();
     AuthDataAccess authDataAccess = new AuthDataSql();
-    GameDataAccess gameDataAccess = new GameDataMem();
+    GameDataAccess gameDataAccess = new GameDataSql();
     UserService userService = new UserService(userDataAccess, authDataAccess);
-    GameService gameService = new GameService(userDataAccess,gameDataAccess,authDataAccess);
+    GameService gameService = new GameService(gameDataAccess,authDataAccess);
 
     public Server(){
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -32,7 +32,11 @@ public class Server{
                 .delete("/session", this::logout)
                 .get("/game", this::listGames)
                 .post("/game", this::createGame)
-                .put("/game", this::joinGame);
+                .put("/game", this::joinGame)
+                .exception(Exception.class, (e,context) -> {
+                    context.status(500);
+                    context.json(new Gson().toJson(Map.of("message","Error: "+ e.getMessage())));
+                });
     }
 
     public int run(int desiredPort) {
@@ -55,6 +59,7 @@ public class Server{
             errorStatus(context, e);
         }
     }
+
 
     private static void errorStatus(Context context, ServiceException e) {
         int status = e.getStatus();

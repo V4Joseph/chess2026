@@ -14,20 +14,17 @@ import service.requestsandresults.JoinGameRequest;
 import java.util.Collection;
 
 public class GameService {
-    private final UserDataAccess userDataAccess;
     private final GameDataAccess gameDataAccess;
     private final AuthDataAccess authDataAccess;
 
-    public GameService (UserDataAccess userDataAccess,
-                             GameDataAccess gameDataAccess,
+    public GameService (GameDataAccess gameDataAccess,
                              AuthDataAccess authDataAccess) {
-        this.userDataAccess = userDataAccess;
         this.gameDataAccess = gameDataAccess;
         this.authDataAccess = authDataAccess;
     }
 
     public Collection<GameData> listGames(String authToken) throws DataAccessException {
-        AuthData authData = authorize(authToken);
+        authorize(authToken);
         return gameDataAccess.listGames();
     }
 
@@ -35,7 +32,7 @@ public class GameService {
         if (authToken == null || createGameRequest.gameName() == null) {
             throw new ServiceException("Error: bad request", 400);
         }
-        AuthData authData = authorize(authToken);
+        authorize(authToken);
         GameData gameData = gameDataAccess.createGame(createGameRequest.gameName());
         return new CreateGameResult(gameData.gameID());
 

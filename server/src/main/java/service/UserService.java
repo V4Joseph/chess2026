@@ -43,8 +43,7 @@ public class UserService {
             throw new ServiceException("Error: bad request", 400);
         }
         UserData userData = userDataAccess.getUser(loginRequest.username());
-        String hashedPassword = BCrypt.hashpw(loginRequest.password(),BCrypt.gensalt());
-        if (userData == null || BCrypt.checkpw(hashedPassword,userData.password())) {
+        if (userData == null || !BCrypt.checkpw(loginRequest.password(),userData.password())) {
             throw new ServiceException("Error: unauthorized", 401);
         }  else {
             String authToken = generateToken();
@@ -65,6 +64,4 @@ public class UserService {
     public static String generateToken() {
         return UUID.randomUUID().toString();
     }
-
-
 }

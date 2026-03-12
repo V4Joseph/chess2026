@@ -13,7 +13,7 @@ public class GameServiceTests {
     AuthDataAccess authDataAccess = new AuthDataMem();
     GameDataAccess gameDataAccess = new GameDataMem();
     UserService userService = new UserService(userDataAccess,authDataAccess);
-    GameService gameService = new GameService(userDataAccess,gameDataAccess,authDataAccess);
+    GameService gameService = new GameService(gameDataAccess,authDataAccess);
     private static RegisterRequest registerRequest;
     private static RegisterResult registerResult;
     private static LoginRequest loginRequest;
