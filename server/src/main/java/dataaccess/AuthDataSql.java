@@ -40,7 +40,13 @@ public class AuthDataSql implements AuthDataAccess{
     }
     public void deleteAuth(String authToken) throws DataAccessException{
         var statement = "DELETE FROM authdata WHERE authToken=?";
-        DatabaseManager.executeUpdate(statement,authToken);
+        if (getAuth(authToken) != null) {
+            DatabaseManager.executeUpdate(statement,authToken);
+        } else {
+            throw new DataAccessException("Auth Token not found: " + authToken);
+        }
+
+
     }
     public void clearAuths() throws DataAccessException{
         var statement = "TRUNCATE authdata";
