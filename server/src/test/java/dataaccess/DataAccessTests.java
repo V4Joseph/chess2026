@@ -36,9 +36,9 @@ public class DataAccessTests {
                 ps.setString(1,authData1.authToken());
                 try (ResultSet rs = ps.executeQuery()) {
                     Assertions.assertTrue(rs.next(),"Not Found");
-                    AuthData authData2 = new AuthData(rs.getString("authToken"),rs.getString("username"));
-                    Assertions.assertEquals(authData1.authToken(),authData2.authToken());
-                    Assertions.assertEquals(authData1.username(),authData2.username());
+                    AuthData getAuth = new AuthData(rs.getString("authToken"),rs.getString("username"));
+                    Assertions.assertEquals(authData1.authToken(),getAuth.authToken());
+                    Assertions.assertEquals(authData1.username(),getAuth.username());
                 }
             }
         } catch (Exception e) {
@@ -144,25 +144,27 @@ public class DataAccessTests {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
 
         // User Tests
         @Test
         @DisplayName("Create User S")
-        public void createUserS() {
+        public void createUserS () {
             try {
                 userDataAccess.createUser(userData1);
             } catch (Exception e) {
                 throw new RuntimeException("Failure to create user");
             }
             try (Connection conn = DatabaseManager.getConnection()) {
-                var statement = "SELECT userToken, username FROM userdata WHERE userToken=?";
+                var statement = "SELECT username, password, email FROM userdata WHERE username=?";
                 try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                    ps.setString(1,userData1.userToken());
+                    ps.setString(1, userData1.username());
                     try (ResultSet rs = ps.executeQuery()) {
-                        Assertions.assertTrue(rs.next(),"Not Found");
-                        UserData authData2 = new UserData(rs.getString("authToken"),rs.getString("username"));
-                        Assertions.assertEquals(authData1.authToken(),authData2.authToken());
-                        Assertions.assertEquals(authData1.username(),authData2.username());
+                        Assertions.assertTrue(rs.next(), "Not Found");
+                        UserData getUser = new UserData(rs.getString("username"), rs.getString("password"), rs.getString("email"));
+                        Assertions.assertEquals(userData1.password(), getUser.password());
+                        Assertions.assertEquals(userData1.username(), getUser.username());
+                        Assertions.assertEquals(userData1.email(), getUser.email());
                     }
                 }
             } catch (Exception e) {
@@ -173,37 +175,39 @@ public class DataAccessTests {
 
         @Test
         @DisplayName("Create User F")
-        public void createUserF() {
+        public void createUserF () {
             try {
-                authDataAccess.createUser(authData1);
+                userDataAccess.createUser(userData1);
             } catch (Exception e) {
-                throw new RuntimeException("Failure to create first authData");
+                throw new RuntimeException("Failure to create first userData");
             }
-            Assertions.assertThrows(DataAccessException.class,()-> {
-                authDataAccess.createUser(authData1);
-            }, "Cannot create duplicate authToken");
+            Assertions.assertThrows(DataAccessException.class, () -> {
+                userDataAccess.createUser(userData1);
+            }, "Cannot create duplicate userToken");
         }
 
         @Test
         @DisplayName("Get User S")
-        public void getUserS() {
+        public void getUserS () {
             try {
-                authDataAccess.createUser(authData1);
-                authDataAccess.createUser(authData2);
+                userDataAccess.createUser(userData1);
+                userDataAccess.createUser(userData2);
             } catch (Exception e) {
-                throw new RuntimeException("Failure to create auth");
+                throw new RuntimeException("Failure to create user");
             }
 
             try {
-                UserData getUser1 = authDataAccess.getUser(authData1.authToken());
+                UserData getUser1 = userDataAccess.getUser(userData1.username());
                 Assertions.assertNotNull(getUser1, "First User not found");
-                Assertions.assertEquals(authData1.authToken(), getUser1.authToken());
-                Assertions.assertEquals(authData1.username(), getUser1.username());
+                Assertions.assertEquals(userData1.password(), getUser1.password());
+                Assertions.assertEquals(userData1.username(), getUser1.username());
+                Assertions.assertEquals(userData1.email(), getUser1.email());
 
-                UserData getUser2 = authDataAccess.getUser(authData2.authToken());
+                UserData getUser2 = userDataAccess.getUser(userData2.username());
                 Assertions.assertNotNull(getUser2, "First User not found");
-                Assertions.assertEquals(authData2.authToken(), getUser2.authToken());
-                Assertions.assertEquals(authData2.username(), getUser2.username());
+                Assertions.assertEquals(userData2.password(), getUser2.password());
+                Assertions.assertEquals(userData2.username(), getUser2.username());
+                Assertions.assertEquals(userData1.email(), getUser1.email());
             } catch (DataAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -212,66 +216,43 @@ public class DataAccessTests {
 
         @Test
         @DisplayName("Get User F")
-        public void getUserF() {
+        public void getUserF () {
             try {
-                authDataAccess.createUser(authData2);
+                userDataAccess.createUser(userData2);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
             try {
-                UserData getUser = authDataAccess.getUser("sigma");
-                Assertions.assertNull(getUser, "Should be null for invalid authtoken");
+                UserData getUser = userDataAccess.getUser("sigma");
+                Assertions.assertNull(getUser, "Should be null for invalid username");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        @Test
-        @DisplayName("Delete User S")
-        public void deleteUserS() {
-            try {
-                authDataAccess.createUser(authData1);
-                UserData checkUser = authDataAccess.getUser(authData1.authToken());
-                Assertions.assertEquals(authData1,checkUser);
-                authDataAccess.deleteUser(authData1.authToken());
-                UserData nullUser = authDataAccess.getUser(authData1.authToken());
-                Assertions.assertNull(nullUser);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Test
-        @DisplayName("Delete User F")
-        public void deleteUserF() {
-            Assertions.assertThrows(DataAccessException.class, ()-> {
-                authDataAccess.deleteUser("this_is_not_a_real_authToken");
-            }, "Should throw Exception deleting non-existent authToken");
-        }
 
         @Test
         @DisplayName("Clear User S")
         public void clearUser() {
             try {
-                authDataAccess.createUser(authData1);
-                authDataAccess.createUser(authData2);
-                authDataAccess.clearUsers();
+                userDataAccess.createUser(userData1);
+                userDataAccess.createUser(userData2);
+                userDataAccess.clearUsers();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
             try {
-                UserData getUser1 = authDataAccess.getUser(authData1.authToken());
-                UserData getUser2 = authDataAccess.getUser(authData2.authToken());
-                Assertions.assertNull(getUser1, "Should return null after clearing auth1");
-                Assertions.assertNull(getUser2, "Should return null after clearing auth2");
+                UserData getUser1 = userDataAccess.getUser(userData1.username());
+                UserData getUser2 = userDataAccess.getUser(userData2.username());
+                Assertions.assertNull(getUser1, "Should return null after clearing user1");
+                Assertions.assertNull(getUser2, "Should return null after clearing user2");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
 
+        }
+
     }
 
-
-
-}
