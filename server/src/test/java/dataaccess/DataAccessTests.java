@@ -1,6 +1,9 @@
 package dataaccess;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 
@@ -15,10 +18,15 @@ public class DataAccessTests {
     UserDataAccess userDataAccess = new UserDataSql();
     UserData userData1 = new UserData("sigma", "boi","sk8ter@gmail.com");
     UserData userData2 = new UserData("labubu", "tulip","yamom@yahoo.com");
+    GameDataAccess gameDataAccess = new GameDataSql();
+    GameData gameData1 = new GameData(1234,"yomom","sobig","Superbowl", new ChessGame());
+
 
     @BeforeEach
     public void setUp() throws DataAccessException{
         authDataAccess.clearAuths();
+        userDataAccess.clearUsers();
+        gameDataAccess.clearGames();
     }
 
     // Auth Tests
@@ -183,7 +191,7 @@ public class DataAccessTests {
             }
             Assertions.assertThrows(DataAccessException.class, () -> {
                 userDataAccess.createUser(userData1);
-            }, "Cannot create duplicate userToken");
+            }, "Cannot create duplicate users");
         }
 
         @Test
@@ -250,9 +258,99 @@ public class DataAccessTests {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-
         }
+
+    // Game Tests
+    @Test
+    @DisplayName("Create Game S")
+    public void createGameS () {
+        try {
+            GameData madeGame = gameDataAccess.createGame(gameData1.gameName());
+            try (Connection conn = DatabaseManager.getConnection()) {
+                var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, json FROM gamedata WHERE gameID=?";
+                PreparedStatement ps = conn.prepareStatement(statement);
+                ps.setInt(1, madeGame.gameID());
+                ResultSet rs = ps.executeQuery();
+                Assertions.assertTrue(rs.next(), "Not Found");
+                GameData getGame = new GameData(rs.getInt("gameID"),
+                rs.getString("whiteUsername"),
+                rs.getString("blackUsername"),
+                rs.getString("gameName"),
+                new Gson().fromJson(rs.getString("json"), ChessGame.class));
+                Assertions.assertEquals(madeGame.gameID(), getGame.gameID());
+                Assertions.assertEquals(madeGame.whiteUsername(), getGame.whiteUsername());
+                Assertions.assertEquals(madeGame.blackUsername(), getGame.blackUsername());
+                Assertions.assertEquals(madeGame.gameName(), getGame.gameName());
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Create Game F")
+    public void createGameF () {
+        try {
+            gameDataAccess.createGame(gameData1.gameName());
+        } catch (Exception e) {
+            throw new RuntimeException("Failure to create first userData");
+        }
+        Assertions.assertThrows(DataAccessException.class, () -> {
+            gameDataAccess.createGame(gameData1.gameName());;
+        }, "Cannot create duplicate gameNames");
+    }
+
+    @Test
+    @DisplayName("Get Game S")
+    public void getGameS () {
+        try {
+            GameData madeGame = gameDataAccess.createGame(gameData1.gameName());
+            try {
+                GameData getGame = gameDataAccess.getGame(madeGame.gameID());
+                Assertions.assertNotNull(getGame, "Game not found");
+                Assertions.assertEquals(madeGame.gameID(), getGame.gameID());
+                Assertions.assertEquals(madeGame.whiteUsername(), getGame.whiteUsername());
+                Assertions.assertEquals(madeGame.blackUsername(), getGame.blackUsername());
+                Assertions.assertEquals(madeGame.gameName(), getGame.gameName());
+            } catch (DataAccessException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failure to create user");
+        }
+    }
+
+    @Test
+    @DisplayName("Get Game F")
+    public void getGameF () {
+        try {
+            GameData getGame = gameDataAccess.getGame(gameData1.gameID());
+            Assertions.assertNull(getGame, "Should be null for invalid gameID");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Test
+    @DisplayName("Clear Game S")
+    public void clearGameS() {
+        try {
+            gameDataAccess.createGame(gameData1.gameName());
+            gameDataAccess.clearGames();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            GameData getGame = gameDataAccess.getGame(gameData1.gameID());
+            Assertions.assertNull(getGame, "Should return null after clearing user1");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     }
 

@@ -24,8 +24,12 @@ public class GameDataSql implements GameDataAccess{
         var statement = "INSERT INTO gamedata (whiteUsername, blackUsername, gameName, json) VALUES (?,?,?,?)";
         ChessGame game = new ChessGame();
         String json = new Gson().toJson(game);
-        int gameID = DatabaseManager.executeUpdate(statement,null,null,gameName,json);
-        return new GameData(gameID,null,null,gameName,game);
+        try {
+            int gameID = DatabaseManager.executeUpdate(statement, null, null, gameName, json);
+            return new GameData(gameID, null, null, gameName, game);
+        } catch (Exception e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
     public GameData getGame(int gameID) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
