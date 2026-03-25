@@ -6,7 +6,7 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import model.GameData;
 import service.GameService;
-import service.requestsandresults.*;
+import model.requestsandresults.*;
 import service.ServiceException;
 import service.UserService;
 

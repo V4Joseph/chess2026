@@ -7,9 +7,9 @@ import dataaccess.GameDataAccess;
 import dataaccess.UserDataAccess;
 import model.AuthData;
 import model.GameData;
-import service.requestsandresults.CreateGameRequest;
-import service.requestsandresults.CreateGameResult;
-import service.requestsandresults.JoinGameRequest;
+import model.requestsandresults.CreateGameRequest;
+import model.requestsandresults.CreateGameResult;
+import model.requestsandresults.JoinGameRequest;
 
 import java.util.Collection;
 

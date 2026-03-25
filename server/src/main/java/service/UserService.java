@@ -6,7 +6,7 @@ import dataaccess.UserDataAccess;
 import model.AuthData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
-import service.requestsandresults.*;
+import model.requestsandresults.*;
 
 import java.util.Objects;
 import java.util.UUID;

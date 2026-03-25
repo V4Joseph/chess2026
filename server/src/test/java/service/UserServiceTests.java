@@ -4,10 +4,10 @@ import dataaccess.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import service.requestsandresults.LoginRequest;
-import service.requestsandresults.LoginResult;
-import service.requestsandresults.RegisterRequest;
-import service.requestsandresults.RegisterResult;
+import model.requestsandresults.LoginRequest;
+import model.requestsandresults.LoginResult;
+import model.requestsandresults.RegisterRequest;
+import model.requestsandresults.RegisterResult;
 
 
 public class UserServiceTests {

@@ -3,7 +3,7 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 import model.*;
-import service.requestsandresults.*;
+import model.requestsandresults.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
