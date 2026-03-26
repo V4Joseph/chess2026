@@ -1,0 +1,188 @@
+package ui;
+
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
+
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
+import static ui.EscapeSequences.*;
+
+public class ConsoleBoard {
+    // Board dimensions.
+    private static final int BOARD_SIZE_IN_SQUARES = 8;
+    private static final int SQUARE_SIZE_IN_PADDED_CHARS = 1;
+
+    // Padded characters.
+    private static final String EMPTY = "\u3000\u3000\u2009";
+
+    public static void main(String[] args) {
+        var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        ChessBoard chessBoard = new ChessBoard();
+        chessBoard.resetBoard();
+        out.print(ERASE_SCREEN);
+        drawBoard(out, chessBoard, "white");
+        out.print(SET_BG_COLOR_BLACK);
+        out.print(SET_TEXT_COLOR_WHITE);
+    }
+
+    public static void drawBoard(PrintStream out, ChessBoard chessBoard, String color) {
+        drawHeaderLine(out, color);
+        drawChessBoard(out, chessBoard,color);
+        drawHeaderLine(out, color);
+    }
+
+    private static void drawHeaderLine(PrintStream out, String color) {
+
+        setGray(out);
+        out.print("  \u2009");
+        String[] Headers = {"a","b","c","d","e","f","g","h"};
+        for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
+            if (color.equalsIgnoreCase("White")) {
+                drawSingleHeader(out, Headers[boardCol]);
+            } else {
+                drawSingleHeader(out, Headers[BOARD_SIZE_IN_SQUARES - (boardCol+1)]);
+            }
+        }
+        out.print(" \u3000");
+        setBlack(out);
+        out.println();
+    }
+
+    private static void drawSingleHeader(PrintStream out, String headerText) {
+        int totalWidth = EMPTY.length() * SQUARE_SIZE_IN_PADDED_CHARS;
+        int padding = totalWidth-1;
+        int leftPad = padding/2;
+        int rightPad = padding - leftPad;
+
+        out.print(" \u2009".repeat(leftPad));
+        printHeaderText(out, headerText);
+        out.print(" \u2009".repeat(rightPad));
+    }
+
+    private static void printHeaderText(PrintStream out, String player) {
+        setText(out);
+        out.print(player);
+        setGray(out);
+    }
+
+    private static void drawChessBoard(PrintStream out, ChessBoard chessBoard, String color) {
+        for (int boardRow = 0; boardRow < BOARD_SIZE_IN_SQUARES; ++boardRow) {
+            int label;
+            if (color.equalsIgnoreCase("White")) {
+                label = BOARD_SIZE_IN_SQUARES - boardRow;
+            } else {
+                label = boardRow;
+            }
+            drawRowOfSquares(out, boardRow, label, chessBoard, color);
+        }
+    }
+
+    private static void drawRowOfSquares(PrintStream out, int boardRow, int label, ChessBoard chessBoard, String color) {
+        for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; squareRow++) {
+            int shift = 0;
+            ChessPosition position;
+            if (color.equalsIgnoreCase("Black")) {
+                shift = 1;
+            }
+            setText(out);
+            if (squareRow == SQUARE_SIZE_IN_PADDED_CHARS/2) {
+                out.print(" " + label + " ");
+            } else {
+                out.print(EMPTY);
+            }
+
+            for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
+                if ((boardCol + boardRow+shift) % 2 == 0) {
+                    out.print(SET_BG_COLOR_MAGENTA);
+
+                } else {
+                    out.print(SET_BG_COLOR_DARK_GREEN);
+
+                }
+                if (shift == 0) {
+                    position = new ChessPosition(7-boardRow+1,7-boardCol+1);
+                } else {
+                    position = new ChessPosition(boardRow+1,boardCol+1);
+                }
+                if (chessBoard.getPiece(position) != null) {
+                    ChessPiece piece = chessBoard.getPiece(position);
+                    if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        out.print(SET_TEXT_COLOR_WHITE);
+                    } else {
+                        out.print(SET_TEXT_COLOR_BLACK);
+                    }
+                    switch (piece.getPieceType()) {
+                        case PAWN:
+                            out.print(BLACK_PAWN);
+                            break;
+                        case ROOK:
+                            out.print(BLACK_ROOK);
+                            break;
+                        case QUEEN:
+                            out.print(BLACK_QUEEN);
+                            break;
+                        case BISHOP:
+                            out.print(BLACK_BISHOP);
+                            break;
+                        case KING:
+                            out.print(BLACK_KING);
+                            break;
+                        case KNIGHT:
+                            out.print(BLACK_KNIGHT);
+                            break;
+                        case null, default:
+                            out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
+                            break;
+                    }
+                } else {
+                    out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
+                }
+                setBlack(out);
+            }
+            setText(out);
+            if (squareRow == SQUARE_SIZE_IN_PADDED_CHARS/2) {
+                out.print(" " + label + " ");
+            } else {
+                out.print(EMPTY);
+            }
+            setBlack(out);
+            out.println();
+        }
+    }
+
+    private static void setWhite(PrintStream out) {
+        out.print(SET_BG_COLOR_WHITE);
+        out.print(SET_TEXT_COLOR_WHITE);
+    }
+
+    private static void setGray(PrintStream out) {
+        out.print(SET_BG_COLOR_LIGHT_GREY);
+        out.print(SET_TEXT_COLOR_LIGHT_GREY);
+    }
+
+    private static void setRed(PrintStream out) {
+        out.print(SET_BG_COLOR_RED);
+        out.print(SET_TEXT_COLOR_RED);
+    }
+
+    private static void setBlack(PrintStream out) {
+        out.print(SET_BG_COLOR_BLACK);
+        out.print(SET_TEXT_COLOR_BLACK);
+    }
+
+    private static void printPlayer(PrintStream out, String player) {
+        out.print(SET_BG_COLOR_WHITE);
+        out.print(SET_TEXT_COLOR_BLACK);
+        out.print(player);
+        setWhite(out);
+    }
+
+    private static void setText(PrintStream out) {
+        out.print(SET_BG_COLOR_LIGHT_GREY);
+        out.print(SET_TEXT_COLOR_BLACK);
+    }
+
+}
