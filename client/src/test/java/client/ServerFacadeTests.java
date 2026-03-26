@@ -1,5 +1,6 @@
 package client;
 
+import exception.ResponseException;
 import org.junit.jupiter.api.*;
 import server.Server;
 import model.*;
@@ -11,6 +12,7 @@ public class ServerFacadeTests {
 
     private static Server server;
     static ServerFacade facade;
+    RegisterRequest registerRequest = new RegisterRequest("player1", "password", "yomom@yahoo.com");
 
     @BeforeAll
     public static void init() {
@@ -26,8 +28,8 @@ public class ServerFacadeTests {
     }
 
     @BeforeEach
-    public void() {
-
+    public void clearAll() throws ResponseException {
+        facade.delete();
     }
 
 
@@ -38,7 +40,7 @@ public class ServerFacadeTests {
 
     @Test
     void register() throws Exception {
-        var authData = facade.register("player1", "password", "p1@email.com");
+        var authData = facade.register(registerRequest);
         assertTrue(authData.authToken().length() > 10);
     }
 }
