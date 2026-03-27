@@ -42,12 +42,6 @@ public class Client {
             System.out.println();
         }
 
-
-//        public void notify(Notification notification) {
-//            System.out.println(RED + notification.message());
-//            printPrompt();
-//        }
-
         private void printPrompt() {
             System.out.print("\n" + "Please enter a menu option here: ");
         }

@@ -38,12 +38,12 @@ public class ConsoleBoard {
 
         setGray(out);
         out.print("  \u2009");
-        String[] Headers = {"a","b","c","d","e","f","g","h"};
+        String[] headers = {"a","b","c","d","e","f","g","h"};
         for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
             if (color.equalsIgnoreCase("White")) {
-                drawSingleHeader(out, Headers[boardCol]);
+                drawSingleHeader(out, headers[boardCol]);
             } else {
-                drawSingleHeader(out, Headers[BOARD_SIZE_IN_SQUARES - (boardCol+1)]);
+                drawSingleHeader(out, headers[BOARD_SIZE_IN_SQUARES - (boardCol+1)]);
             }
         }
         out.print(" \u3000");
@@ -163,21 +163,9 @@ public class ConsoleBoard {
         out.print(SET_TEXT_COLOR_LIGHT_GREY);
     }
 
-    private static void setRed(PrintStream out) {
-        out.print(SET_BG_COLOR_RED);
-        out.print(SET_TEXT_COLOR_RED);
-    }
-
     private static void setBlack(PrintStream out) {
         out.print(SET_BG_COLOR_BLACK);
         out.print(SET_TEXT_COLOR_BLACK);
-    }
-
-    private static void printPlayer(PrintStream out, String player) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_BLACK);
-        out.print(player);
-        setWhite(out);
     }
 
     private static void setText(PrintStream out) {
