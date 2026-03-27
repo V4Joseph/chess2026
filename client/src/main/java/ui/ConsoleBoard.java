@@ -23,7 +23,7 @@ public class ConsoleBoard {
         ChessBoard chessBoard = new ChessBoard();
         chessBoard.resetBoard();
         out.print(ERASE_SCREEN);
-        drawBoard(out, chessBoard, "white");
+        drawBoard(out, chessBoard, args[0]);
         out.print(SET_BG_COLOR_BLACK);
         out.print(SET_TEXT_COLOR_WHITE);
     }

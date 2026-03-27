@@ -7,7 +7,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.*;
 import java.net.http.*;
 import exception.ResponseException;
-import ui.ConsoleBoard;
 
 
 public class ServerFacade {
@@ -39,7 +38,9 @@ public class ServerFacade {
     }
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException{
         var request = buildRequest("PUT", "/game", joinGameRequest, authToken);
+        System.out.println("Request: " + request);
         var response = sendRequest(request);
+        System.out.println("Response: " + response);
         handleResponse(response, null);
     }
     public CreateGameResult createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException{
@@ -76,6 +77,7 @@ public class ServerFacade {
 
     private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException{
         try {
+            System.out.println();
             return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError, e.getMessage());

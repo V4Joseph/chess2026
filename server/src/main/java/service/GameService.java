@@ -40,7 +40,7 @@ public class GameService {
 
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws DataAccessException {
         // Null parameters
-        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.gameID() == null) {
+        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.gameID() == null || joinGameRequest.gameID() == 0) {
             throw new ServiceException("Error: bad request", 400);
         }
         boolean equalsWhite = joinGameRequest.playerColor().equals(ChessGame.TeamColor.WHITE.name());

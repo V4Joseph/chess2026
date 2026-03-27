@@ -10,6 +10,8 @@ import model.GameData;
 import model.requestsandresults.*;
 import ui.ConsoleBoard;
 
+import static ui.ConsoleBoard.drawBoard;
+
 public class Client {
         private String authToken = null;
         private final ServerFacade facade;
@@ -58,6 +60,7 @@ public class Client {
                     case "list" -> listGames();
                     case "join" -> joinGame();
                     case "create" -> createGame();
+                    case "observe" -> observeGame();
                     case "logout" -> logout();
                     case "quit" -> "quit";
                     default -> help();
@@ -134,6 +137,8 @@ public class Client {
         String color = scanner.nextLine();
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         facade.joinGame(joinGameRequest, authToken);
+        String[] perspective = {color};
+        ConsoleBoard.main(perspective);
         return String.format("Joined Game: %d",gameID);
     }
 
@@ -145,9 +150,22 @@ public class Client {
         System.out.println("Please enter the color you want to play as");
         String color = scanner.nextLine();
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
-        facade.createGame(createGameRequest,authToken);
+        CreateGameResult createGameResult = facade.createGame(createGameRequest,authToken);
+        JoinGameRequest joinGameRequest = new JoinGameRequest(color, createGameResult.gameID());
+        facade.joinGame(joinGameRequest, authToken);
+        String[] perspective = {color};
+        ConsoleBoard.main(perspective);
+        return String.format("Created Game: %s \nJoined as %s",gameName, color);
+    }
 
-        return String.format("Created Game: %s",gameName);
+    public String observeGame() throws ResponseException{
+        assertSignedIn();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Please enter the ID of the game you want to observe");
+        int gameID = Integer.parseInt(scanner.nextLine());
+        String[] perspective = {"white"};
+        ConsoleBoard.main(perspective);
+        return String.format("Now observing game #%d", gameID);
     }
 
         public String logout() throws ResponseException {
@@ -170,6 +188,7 @@ public class Client {
                 - join
                 - create
                 - list
+                - observe
                 - logout
                 - quit
                 """;
