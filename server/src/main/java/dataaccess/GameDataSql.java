@@ -21,6 +21,9 @@ public class GameDataSql implements GameDataAccess{
     }
 
     public GameData createGame(String gameName) throws DataAccessException {
+        if (gameName.isEmpty()) {
+            throw new DataAccessException("Error: Invalid Game Name");
+        }
         var statement = "INSERT INTO gamedata (whiteUsername, blackUsername, gameName, json) VALUES (?,?,?,?)";
         ChessGame game = new ChessGame();
         String json = new Gson().toJson(game);

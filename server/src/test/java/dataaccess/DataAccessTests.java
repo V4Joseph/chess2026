@@ -299,8 +299,8 @@ public class DataAccessTests {
             throw new RuntimeException("Failure to create first userData");
         }
         Assertions.assertThrows(DataAccessException.class, () -> {
-            gameDataAccess.createGame(gameData1.gameName());;
-        }, "Cannot create duplicate gameNames");
+            gameDataAccess.createGame("");
+        }, "Cannot create empty gameNames");
     }
 
     @Test

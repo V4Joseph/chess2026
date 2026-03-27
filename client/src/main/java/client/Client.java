@@ -1,9 +1,6 @@
 package client;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 import exception.ResponseException;
 import model.GameData;
@@ -12,12 +9,16 @@ import ui.ConsoleBoard;
 
 import static ui.ConsoleBoard.drawBoard;
 
+// Make a map of gameID
+
+
 public class Client {
         private String authToken = null;
         private final ServerFacade facade;
         private State state = State.SIGNEDOUT;
         private final ConsoleBoard board;
         private static int maxGameNum;
+        private static Map<Integer, Integer> gameNum = new HashMap<>();
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
@@ -116,6 +117,8 @@ public class Client {
     }
 
     public String listGames() throws ResponseException {
+            int i;
+            maxGameNum = 0;
             assertSignedIn();
         ListGamesResult listGamesResult = facade.listGames(authToken);
         Collection<GameData> games = listGamesResult.games();
@@ -123,9 +126,10 @@ public class Client {
             return "No available games";
         }
         StringBuilder result = new StringBuilder();
+        i = 1;
         for (GameData game : games) {
-            result.append("ID: ")
-                    .append(game.gameID())
+            result.append("Game #: ")
+                    .append(i)
                     .append(" / Name: ")
                     .append(game.gameName())
                     .append(" / White: ")
@@ -133,9 +137,11 @@ public class Client {
                     .append(" / Black: ")
                     .append(game.blackUsername())
                     .append("\n");
-            if (game.gameID() > maxGameNum) {
-                maxGameNum = game.gameID();
+            gameNum.put(i,game.gameID());
+            if (i>maxGameNum) {
+                maxGameNum = i;
             }
+            i++;
         }
         return result.toString();
     }
@@ -144,11 +150,11 @@ public class Client {
         int gameID;
         assertSignedIn();
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Please enter the ID of the game you want to join");
+        System.out.println("Please enter the number of the game you want to join");
         try {
-            gameID = Integer.parseInt(scanner.nextLine());
+            gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, "Input must be a number");
+            throw new ResponseException(ResponseException.Code.ServerError, "Invalid Input");
         }
         System.out.println("Please enter the color you want to play as");
         String color = scanner.nextLine();
@@ -176,19 +182,16 @@ public class Client {
             int gameID;
         assertSignedIn();
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Please enter the ID of the game you want to observe");
+        System.out.println("Please enter the number of the game you want to observe");
         try {
-            gameID = Integer.parseInt(scanner.nextLine());
+            gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
         } catch (Exception e) {
-            throw new ResponseException(ResponseException.Code.ServerError, "Input must be a number");
+            throw new ResponseException(ResponseException.Code.ServerError, "Invalid Input");
         }
-        if (gameID > maxGameNum || gameID < 1) {
-            return "Error: Invalid game ID";
-        }else {
             String[] perspective = {"white"};
             ConsoleBoard.main(perspective);
             return String.format("Now observing game #%d", gameID);
-        }
+
     }
 
         public String logout() throws ResponseException {

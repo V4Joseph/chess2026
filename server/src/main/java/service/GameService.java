@@ -40,7 +40,11 @@ public class GameService {
 
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws DataAccessException {
         // Null parameters
-        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.playerColor().isEmpty() || joinGameRequest.gameID() == null || joinGameRequest.gameID() == 0) {
+        if (authToken == null ||
+                joinGameRequest.playerColor() == null ||
+                joinGameRequest.playerColor().isEmpty() ||
+                joinGameRequest.gameID() == null ||
+                joinGameRequest.gameID() == 0) {
             throw new ServiceException("Error: bad param request", 400);
         }
         boolean equalsWhite = joinGameRequest.playerColor().equalsIgnoreCase(ChessGame.TeamColor.WHITE.name());
