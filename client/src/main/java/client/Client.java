@@ -140,7 +140,6 @@ public class Client {
         String color = scanner.nextLine();
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         facade.joinGame(joinGameRequest, authToken);
-        board.
         return String.format("Joined Game: %d",gameID);
     }
 
