@@ -7,6 +7,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.*;
 import java.net.http.*;
 import exception.ResponseException;
+import ui.ConsoleBoard;
+
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();

@@ -8,14 +8,17 @@ import java.util.Scanner;
 import exception.ResponseException;
 import model.GameData;
 import model.requestsandresults.*;
+import ui.ConsoleBoard;
 
 public class Client {
         private String authToken = null;
         private final ServerFacade facade;
         private State state = State.SIGNEDOUT;
+        private final ConsoleBoard board;
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
+            board = new ConsoleBoard();
         }
 
         public void run() {
@@ -137,7 +140,7 @@ public class Client {
         String color = scanner.nextLine();
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         facade.joinGame(joinGameRequest, authToken);
-
+        board.
         return String.format("Joined Game: %d",gameID);
     }
 
