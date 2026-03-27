@@ -22,7 +22,12 @@ public class UserService {
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws ServiceException, DataAccessException{
-        if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
+        if (registerRequest.username() == null ||
+                registerRequest.username().isEmpty() ||
+                registerRequest.password() == null ||
+                registerRequest.password().isEmpty() ||
+                registerRequest.email() == null ||
+                registerRequest.email().isEmpty()) {
             throw new ServiceException("Error: bad request", 400);
         }
         UserData userData = userDataAccess.getUser(registerRequest.username());
@@ -39,7 +44,10 @@ public class UserService {
         }
     }
     public LoginResult login(LoginRequest loginRequest) throws DataAccessException, ServiceException{
-        if (loginRequest.username() == null || loginRequest.password() == null) {
+        if (loginRequest.username() == null ||
+                loginRequest.password() == null ||
+                loginRequest.username().isEmpty() ||
+                loginRequest.password().isEmpty()) {
             throw new ServiceException("Error: bad request", 400);
         }
         UserData userData = userDataAccess.getUser(loginRequest.username());

@@ -17,6 +17,7 @@ public class Client {
         private final ServerFacade facade;
         private State state = State.SIGNEDOUT;
         private final ConsoleBoard board;
+        private static int maxGameNum;
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
@@ -54,6 +55,9 @@ public class Client {
                 String[] tokens = input.toLowerCase().split(" ");
                 String cmd = (tokens.length > 0) ? tokens[0] : "help";
                 String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+                if (params.length > 1) {
+                    throw new RuntimeException("Invalid Input");
+                }
                 return switch (cmd) {
                     case "login" -> login(params);
                     case "register" -> register(params);
@@ -82,6 +86,7 @@ public class Client {
                 if (loginResult.authToken() != null) {
                     state = State.SIGNEDIN;
                     authToken = loginResult.authToken();
+                    listGames();
                     return String.format("Succesfully logged in as %s", loginResult.username());
                 }
             }
@@ -105,9 +110,9 @@ public class Client {
                 state = State.SIGNEDIN;
                 return String.format("Succesfully registered as %s", registerResult.username());
             }
-            return "Unauthorized";
+            return "Error: Unauthorized";
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Incomplete");
+        throw new ResponseException(ResponseException.Code.ClientError, "Error: Incomplete inputs");
     }
 
     public String listGames() throws ResponseException {
@@ -123,16 +128,28 @@ public class Client {
                     .append(game.gameID())
                     .append(" / Name: ")
                     .append(game.gameName())
+                    .append(" / White: ")
+                    .append(game.whiteUsername())
+                    .append(" / Black: ")
+                    .append(game.blackUsername())
                     .append("\n");
+            if (game.gameID() > maxGameNum) {
+                maxGameNum = game.gameID();
+            }
         }
         return result.toString();
     }
 
     public String joinGame() throws ResponseException{
+        int gameID;
         assertSignedIn();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the ID of the game you want to join");
-        int gameID = Integer.parseInt(scanner.nextLine());
+        try {
+            gameID = Integer.parseInt(scanner.nextLine());
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Input must be a number");
+        }
         System.out.println("Please enter the color you want to play as");
         String color = scanner.nextLine();
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
@@ -147,25 +164,31 @@ public class Client {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the name of the game you want to create");
         String gameName = scanner.nextLine();
-        System.out.println("Please enter the color you want to play as");
-        String color = scanner.nextLine();
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
         CreateGameResult createGameResult = facade.createGame(createGameRequest,authToken);
-        JoinGameRequest joinGameRequest = new JoinGameRequest(color, createGameResult.gameID());
-        facade.joinGame(joinGameRequest, authToken);
-        String[] perspective = {color};
-        ConsoleBoard.main(perspective);
-        return String.format("Created Game: %s \nJoined as %s",gameName, color);
+        if (maxGameNum < createGameResult.gameID()) {
+            maxGameNum = createGameResult.gameID();
+        }
+        return String.format("Created Game: %s ",gameName);
     }
 
     public String observeGame() throws ResponseException{
+            int gameID;
         assertSignedIn();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the ID of the game you want to observe");
-        int gameID = Integer.parseInt(scanner.nextLine());
-        String[] perspective = {"white"};
-        ConsoleBoard.main(perspective);
-        return String.format("Now observing game #%d", gameID);
+        try {
+            gameID = Integer.parseInt(scanner.nextLine());
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ServerError, "Input must be a number");
+        }
+        if (gameID > maxGameNum || gameID < 1) {
+            return "Error: Invalid game ID";
+        }else {
+            String[] perspective = {"white"};
+            ConsoleBoard.main(perspective);
+            return String.format("Now observing game #%d", gameID);
+        }
     }
 
         public String logout() throws ResponseException {

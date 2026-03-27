@@ -29,8 +29,8 @@ public class GameService {
     }
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest, String authToken)throws DataAccessException {
-        if (authToken == null || createGameRequest.gameName() == null) {
-            throw new ServiceException("Error: bad request", 400);
+        if (authToken == null || createGameRequest.gameName() == null || createGameRequest.gameName().isEmpty()) {
+            throw new ServiceException("Error: bad create request", 400);
         }
         authorize(authToken);
         GameData gameData = gameDataAccess.createGame(createGameRequest.gameName());
@@ -40,14 +40,14 @@ public class GameService {
 
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws DataAccessException {
         // Null parameters
-        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.gameID() == null || joinGameRequest.gameID() == 0) {
-            throw new ServiceException("Error: bad request", 400);
+        if (authToken == null || joinGameRequest.playerColor() == null || joinGameRequest.playerColor().isEmpty() || joinGameRequest.gameID() == null || joinGameRequest.gameID() == 0) {
+            throw new ServiceException("Error: bad param request", 400);
         }
-        boolean equalsWhite = joinGameRequest.playerColor().equals(ChessGame.TeamColor.WHITE.name());
-        boolean equalsBlack = joinGameRequest.playerColor().equals(ChessGame.TeamColor.BLACK.name());
+        boolean equalsWhite = joinGameRequest.playerColor().equalsIgnoreCase(ChessGame.TeamColor.WHITE.name());
+        boolean equalsBlack = joinGameRequest.playerColor().equalsIgnoreCase(ChessGame.TeamColor.BLACK.name());
         // Not WHITE/BLACK for playerColor
         if (!(equalsWhite || equalsBlack)) {
-            throw new ServiceException("Error: bad request",400);
+            throw new ServiceException("Error: bad color request",400);
         }
         AuthData authData = authorize(authToken);
         GameData gameData = gameDataAccess.getGame(joinGameRequest.gameID());

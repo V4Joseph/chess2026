@@ -24,7 +24,7 @@ public class ConsoleBoard {
         chessBoard.resetBoard();
         out.print(ERASE_SCREEN);
         drawBoard(out, chessBoard, args[0]);
-        out.print(SET_BG_COLOR_BLACK);
+        out.print(RESET_BG_COLOR);
         out.print(SET_TEXT_COLOR_WHITE);
     }
 
@@ -74,7 +74,7 @@ public class ConsoleBoard {
             if (color.equalsIgnoreCase("White")) {
                 label = BOARD_SIZE_IN_SQUARES - boardRow;
             } else {
-                label = boardRow;
+                label = boardRow+1;
             }
             drawRowOfSquares(out, boardRow, label, chessBoard, color);
         }
@@ -95,7 +95,7 @@ public class ConsoleBoard {
             }
 
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-                if ((boardCol + boardRow+shift) % 2 == 0) {
+                if ((boardCol + boardRow) % 2 == 0) {
                     out.print(SET_BG_COLOR_MAGENTA);
 
                 } else {
@@ -103,9 +103,9 @@ public class ConsoleBoard {
 
                 }
                 if (shift == 0) {
-                    position = new ChessPosition(7-boardRow+1,7-boardCol+1);
+                    position = new ChessPosition(7-boardRow+1,boardCol+1);
                 } else {
-                    position = new ChessPosition(boardRow+1,boardCol+1);
+                    position = new ChessPosition(boardRow+1,7-boardCol+1);
                 }
                 if (chessBoard.getPiece(position) != null) {
                     ChessPiece piece = chessBoard.getPiece(position);
@@ -159,7 +159,7 @@ public class ConsoleBoard {
     }
 
     private static void setBlack(PrintStream out) {
-        out.print(SET_BG_COLOR_BLACK);
+        out.print(RESET_BG_COLOR);
         out.print(SET_TEXT_COLOR_BLACK);
     }
 
