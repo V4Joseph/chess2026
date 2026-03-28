@@ -36,24 +36,23 @@ public class ServerFacadeTests {
 
     @Test
     void registerSuccess() throws Exception {
-        var result = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        var result = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         assertNotNull(result.authToken());
         assertTrue(result.authToken().length() > 10);
     }
 
     @Test
     void registerDuplicateUserThrows() throws Exception {
-        facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
-        // Registering the same username a second time must fail
+        facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         assertThrows(ResponseException.class, () ->
-                facade.register(new RegisterRequest("player1", "password", "p1@mail.com")));
+                facade.register(new RegisterRequest("player1", "password", "p1@gmail.com")));
     }
 
     // Login Tests
 
     @Test
     void loginSuccess() throws Exception {
-        facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         var result = facade.login(new LoginRequest("player1", "password"));
         assertNotNull(result.authToken());
         assertTrue(result.authToken().length() > 10);
@@ -61,7 +60,7 @@ public class ServerFacadeTests {
 
     @Test
     void loginWrongPasswordThrows() throws Exception {
-        facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         assertThrows(ResponseException.class, () ->
                 facade.login(new LoginRequest("player1", "wrongPassword")));
     }
@@ -70,22 +69,21 @@ public class ServerFacadeTests {
 
     @Test
     void logoutSuccess() throws Exception {
-        var auth = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
-        // Should complete without throwing
+        var auth = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         assertDoesNotThrow(() -> facade.logout(auth.authToken()));
     }
 
     @Test
     void logoutInvalidTokenThrows() {
         assertThrows(ResponseException.class, () ->
-                facade.logout("this-is-not-a-real-token"));
+                facade.logout("faketoken"));
     }
 
     // Create Tests
 
     @Test
     void createGameSuccess() throws Exception {
-        var auth = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        var auth = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         var result = facade.createGame(new CreateGameRequest("My Game"), auth.authToken());
         assertTrue(result.gameID() > 0);
     }
@@ -93,14 +91,14 @@ public class ServerFacadeTests {
     @Test
     void createGameUnauthorizedThrows() {
         assertThrows(ResponseException.class, () ->
-                facade.createGame(new CreateGameRequest("My Game"), "bad-token"));
+                facade.createGame(new CreateGameRequest("My Game"), "faketoken"));
     }
 
     // List Tests
 
     @Test
     void listGamesSuccess() throws Exception {
-        var auth = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        var auth = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         facade.createGame(new CreateGameRequest("Game One"), auth.authToken());
         facade.createGame(new CreateGameRequest("Game Two"), auth.authToken());
         var result = facade.listGames(auth.authToken());
@@ -111,14 +109,14 @@ public class ServerFacadeTests {
     @Test
     void listGamesUnauthorizedThrows() {
         assertThrows(ResponseException.class, () ->
-                facade.listGames("bad-token"));
+                facade.listGames("faketoken"));
     }
 
     // Join Tests
 
     @Test
     void joinGameSuccess() throws Exception {
-        var auth = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        var auth = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         var game = facade.createGame(new CreateGameRequest("My Game"), auth.authToken());
         assertDoesNotThrow(() ->
                 facade.joinGame(new JoinGameRequest("WHITE", game.gameID()), auth.authToken()));
@@ -126,11 +124,10 @@ public class ServerFacadeTests {
 
     @Test
     void joinGameAlreadyTakenThrows() throws Exception {
-        var auth1 = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
-        var auth2 = facade.register(new RegisterRequest("player2", "password", "p2@mail.com"));
+        var auth1 = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
+        var auth2 = facade.register(new RegisterRequest("player2", "password", "p2@gmail.com"));
         var game = facade.createGame(new CreateGameRequest("My Game"), auth1.authToken());
         facade.joinGame(new JoinGameRequest("WHITE", game.gameID()), auth1.authToken());
-        // Second player tries to claim the same color
         assertThrows(ResponseException.class, () ->
                 facade.joinGame(new JoinGameRequest("WHITE", game.gameID()), auth2.authToken()));
     }
@@ -139,19 +136,17 @@ public class ServerFacadeTests {
 
     @Test
     void deleteSuccess() throws Exception {
-        var auth = facade.register(new RegisterRequest("player1", "password", "p1@mail.com"));
+        var auth = facade.register(new RegisterRequest("player1", "password", "p1@gmail.com"));
         facade.createGame(new CreateGameRequest("My Game"), auth.authToken());
-        // After delete, the game list should be empty for a freshly registered user
         assertDoesNotThrow(() -> facade.delete());
-        var auth2 = facade.register(new RegisterRequest("player2", "password", "p2@mail.com"));
+        var auth2 = facade.register(new RegisterRequest("player2", "password", "p2@gmail.com"));
         var result = facade.listGames(auth2.authToken());
         assertTrue(result.games().isEmpty());
     }
 
     @Test
     void deleteCalledTwiceStillSucceeds() throws Exception {
-        // Deleting an already-empty database should not throw
-        facade.delete(); // first call (BeforeEach already called it once)
+        facade.delete();
         assertDoesNotThrow(() -> facade.delete());
     }
 }
