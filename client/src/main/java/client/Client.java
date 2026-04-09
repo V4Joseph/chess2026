@@ -2,17 +2,19 @@ package client;
 
 import java.util.*;
 
+import client.websocket.ServerMessageObserver;
 import exception.ResponseException;
 import model.GameData;
 import model.requestsandresults.*;
 import ui.ConsoleBoard;
+import websocket.messages.ServerMessage;
 
 import static ui.ConsoleBoard.drawBoard;
 
 // Make a map of gameID
 
 
-public class Client {
+public class Client implements ServerMessageObserver {
         private String authToken = null;
         private final ServerFacade facade;
         private State state = State.SIGNEDOUT;
@@ -23,6 +25,19 @@ public class Client {
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
             board = new ConsoleBoard();
+        }
+
+        @Override
+        public void notify(ServerMessage serverMessage) {
+            switch (serverMessage.getServerMessageType()) {
+                case NOTIFICATION -> displayNotification(ServerMessage.getMessage());
+                case ERROR -> ;
+                case LOAD_GAME -> ;
+            }
+        }
+
+        public void displayNotification(String message) {
+
         }
 
         public void run() {

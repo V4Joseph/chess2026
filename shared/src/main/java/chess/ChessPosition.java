@@ -12,6 +12,7 @@ public class ChessPosition {
 
     private final int row;
     private final int col;
+    private final String[] rowLetters = {"t","a","b","c","d","e","f","g","h"};
 
     public ChessPosition(int row, int col) {
         this.row = row;
@@ -32,6 +33,10 @@ public class ChessPosition {
      */
     public int getColumn() {
         return col;
+    }
+
+    public String getName() {
+        return String.format(rowLetters[row] + col);
     }
 
     @Override
