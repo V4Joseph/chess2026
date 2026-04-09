@@ -33,10 +33,16 @@ public class Server{
                 .get("/game", this::listGames)
                 .post("/game", this::createGame)
                 .put("/game", this::joinGame)
+                .ws("/ws",ws -> {
+                    ws.onConnect(ctx -> System.out.println("Websocket connected"));
+                    ws.onMessage(ctx -> ctx.send("Websocket response: " + ctx.message()));
+                    ws.onClose(ctx -> System.out.println("Websocket closed"));
+                })
                 .exception(Exception.class, (e,context) -> {
                     context.status(500);
                     context.json(new Gson().toJson(Map.of("message","Error: "+ e.getMessage())));
                 });
+
     }
 
     public int run(int desiredPort) {
