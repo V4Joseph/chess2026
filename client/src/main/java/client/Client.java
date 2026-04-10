@@ -2,6 +2,7 @@ package client;
 
 import java.util.*;
 
+import chess.ChessGame;
 import client.websocket.ServerMessageObserver;
 import exception.ResponseException;
 import model.GameData;
@@ -19,8 +20,8 @@ public class Client implements ServerMessageObserver {
         private final ServerFacade facade;
         private State state = State.SIGNEDOUT;
         private final ConsoleBoard board;
-        private static int maxGameNum;
-        private static Map<Integer, Integer> gameNum = new HashMap<>();
+        private  int maxGameNum;
+        private  Map<Integer, Integer> gameNum = new HashMap<>();
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
@@ -30,13 +31,19 @@ public class Client implements ServerMessageObserver {
         @Override
         public void notify(ServerMessage serverMessage) {
             switch (serverMessage.getServerMessageType()) {
-                case NOTIFICATION -> displayNotification(ServerMessage.getMessage());
-                case ERROR -> ;
-                case LOAD_GAME -> ;
+                case NOTIFICATION -> displayNotification(serverMessage.getMessage());
+                case ERROR -> displayError(serverMessage);
+                case LOAD_GAME -> loadGame(serverMessage.getGame());
             }
         }
 
         public void displayNotification(String message) {
+
+        }
+        public void displayError(ServerMessage serverMessage) {
+            serverMessage.setErrorMessage(serverMessage.getMessage());
+        }
+        public void loadGame(ChessGame game) {
 
         }
 

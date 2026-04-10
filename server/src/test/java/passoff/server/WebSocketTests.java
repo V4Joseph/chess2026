@@ -12,6 +12,8 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static websocket.messages.ServerMessage.ServerMessageType.*;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class WebSocketTests {
     private static WebsocketTestingEnvironment environment;
@@ -395,7 +397,7 @@ public class WebSocketTests {
     }
 
     private void assertLoadGame(String username, TestMessage message) {
-        Assertions.assertEquals(ServerMessage.ServerMessageType.LOAD_GAME, message.getServerMessageType(),
+        Assertions.assertEquals(LOAD_GAME, message.getServerMessageType(),
                 "Message for %s was not a LOAD_GAME message: %s".formatted(username, message));
         Assertions.assertNotNull(message.getGame(),
                 "%s's LOAD_GAME message did not contain a game (Make sure it's specifically called 'game')".formatted(username));

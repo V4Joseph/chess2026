@@ -34,7 +34,7 @@ public class ServerMessage {
         this.errorMessage = message;
         this.message = null;
     }
-    public static String getMessage(){return message;}
+    public String getMessage(){return this.message;}
     public String getErrorMessage(){return this.errorMessage;}
     public ChessGame getGame(){return this.game;}
     public ChessGame.TeamColor getColor(){return this.color;}
