@@ -1,9 +1,11 @@
 package client;
 
+import java.io.IOException;
 import java.util.*;
 
 import chess.ChessGame;
 import client.websocket.ServerMessageObserver;
+import client.websocket.WebSocketFacade;
 import exception.ResponseException;
 import model.GameData;
 import model.requestsandresults.*;
@@ -18,14 +20,17 @@ import static ui.ConsoleBoard.drawBoard;
 public class Client implements ServerMessageObserver {
         private String authToken = null;
         private final ServerFacade facade;
+        private WebSocketFacade webSocketFacade;
         private State state = State.SIGNEDOUT;
         private final ConsoleBoard board;
         private  int maxGameNum;
+        private String serverURL;
         private  Map<Integer, Integer> gameNum = new HashMap<>();
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
             board = new ConsoleBoard();
+            serverURL = serverUrl;
         }
 
         @Override
@@ -91,9 +96,14 @@ public class Client implements ServerMessageObserver {
                     case "observe" -> observeGame();
                     case "logout" -> logout();
                     case "quit" -> "quit";
+                    case "redraw" -> redraw();
+                    case "leave" -> leave();
+                    case "move" -> move();
+                    case "resign" -> resign();
+                    case "highlight" -> highlight();
                     default -> help();
                 };
-            } catch (ResponseException ex) {
+            } catch (ResponseException | IOException ex) {
                 return ex.getMessage();
             }
         }
@@ -169,11 +179,12 @@ public class Client implements ServerMessageObserver {
         return result.toString();
     }
 
-    public String joinGame() throws ResponseException{
+    public String joinGame() throws ResponseException, IOException {
         int gameID;
         assertSignedIn();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the number of the game you want to join");
+        state = State.INGAME;
         try {
             gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
         } catch (Exception e) {
@@ -184,7 +195,9 @@ public class Client implements ServerMessageObserver {
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         facade.joinGame(joinGameRequest, authToken);
         String[] perspective = {color};
-        ConsoleBoard.main(perspective);
+//        ConsoleBoard.main(perspective);
+        webSocketFacade = new WebSocketFacade(serverURL, this);
+        webSocketFacade.connect(authToken, gameID);
         return String.format("Joined Game: %d",gameID);
     }
 
@@ -225,6 +238,22 @@ public class Client implements ServerMessageObserver {
             return "Goodbye";
         }
 
+        public String redraw() {
+
+        }
+        public String leave() {
+
+        }
+        public String move() {
+
+        }
+        public String resign() {
+
+        }
+        public String highlight() {
+
+        }
+
         public String help() {
             if (state == State.SIGNEDOUT) {
                 return """
@@ -232,6 +261,15 @@ public class Client implements ServerMessageObserver {
                     - register
                     - quit
                     """;
+            } else if (state == State.INGAME) {
+                return """
+                        - help
+                        - redraw
+                        - leave
+                        - move
+                        - resign
+                        - highlight
+                        """;
             }
             return """
                 - join
