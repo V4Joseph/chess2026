@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 
 import chess.ChessGame;
+import client.websocket.PlayerColor;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -22,11 +23,13 @@ public class Client implements ServerMessageObserver {
         private final ServerFacade facade;
         private WebSocketFacade webSocketFacade;
         private State state = State.SIGNEDOUT;
+        private PlayerColor playerColor = PlayerColor.White;
         private final ConsoleBoard board;
         private  int maxGameNum;
         private int currentGameID;
         private String serverURL;
         private  Map<Integer, Integer> gameNum = new HashMap<>();
+        private ChessGame currentGame;
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
@@ -51,7 +54,9 @@ public class Client implements ServerMessageObserver {
             System.out.println("Error: " + serverMessage.getErrorMessage());
         }
         public void loadGame(ChessGame game, ChessGame.TeamColor color) {
-            drawBoard(System.out, game.getBoard(),color.name());
+            currentGame = game;
+            String colorName = (color != null) ? color.name() : "WHITE";
+            drawBoard(System.out, game.getBoard(),colorName);
         }
 
         public void run() {
@@ -194,6 +199,11 @@ public class Client implements ServerMessageObserver {
         }
         System.out.println("Please enter the color you want to play as");
         String color = scanner.nextLine();
+        if (color.equalsIgnoreCase("Black")) {
+            playerColor = PlayerColor.Black;
+        } else {
+            playerColor = PlayerColor.White;
+        }
         JoinGameRequest joinGameRequest = new JoinGameRequest(color, gameID);
         facade.joinGame(joinGameRequest, authToken);
         String[] perspective = {color};
@@ -219,6 +229,7 @@ public class Client implements ServerMessageObserver {
     public String observeGame() throws ResponseException{
             int gameID;
         assertSignedIn();
+        playerColor = PlayerColor.White;
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the number of the game you want to observe");
         try {
@@ -241,22 +252,29 @@ public class Client implements ServerMessageObserver {
             return "Goodbye";
         }
 
-        public String redraw() {
-
+        public String redraw() throws ResponseException {
+            assertInGame();
+            String colorName = (playerColor == PlayerColor.Black) ? "BLACK" : "WHITE";
+            drawBoard(System.out, currentGame.getBoard(), colorName);
+            return "";
         }
-        public String leave() throws IOException {
+        public String leave() throws IOException, ResponseException {
+            assertInGame();
             webSocketFacade.leave(authToken, currentGameID);
             state = State.SIGNEDIN;
             return "Succesfully left the game";
         }
-        public String move() {
+        public String move() throws ResponseException {
+            assertInGame();
 
         }
-        public String resign() throws IOException {
+        public String resign() throws IOException, ResponseException {
+            assertInGame();
             webSocketFacade.resign(authToken,currentGameID);
             return "Resigned from game";
         }
-        public String highlight() {
+        public String highlight() throws ResponseException {
+            assertInGame();
 
         }
 
@@ -290,6 +308,11 @@ public class Client implements ServerMessageObserver {
         private void assertSignedIn() throws ResponseException {
             if (state == State.SIGNEDOUT) {
                 throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
+            }
+        }
+        private void assertInGame() throws ResponseException {
+            if (!(state == State.INGAME)) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Must be in a game");
             }
         }
     }
