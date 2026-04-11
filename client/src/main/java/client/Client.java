@@ -279,7 +279,8 @@ public class Client implements ServerMessageObserver {
             ChessPosition startPosition = findPosition(inputs[0]);
             ChessPosition endPosition = findPosition(inputs[1]);
             ChessPiece.PieceType promotion = null;
-            if ((endPosition.getRow() == 1 || endPosition.getRow() == 8) && currentGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN) {
+            if ((endPosition.getRow() == 1 || endPosition.getRow() == 8) &&
+                    currentGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN) {
                 System.out.println("Please enter the promotion piece");
                 String input = scanner.nextLine();
                 if ((ChessPiece.PieceType.valueOf(input.toUpperCase()) != ChessPiece.PieceType.QUEEN) &&
