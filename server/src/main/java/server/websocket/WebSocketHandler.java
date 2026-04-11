@@ -79,7 +79,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(gameID,session, serverMessage);
     }
 
-    private void makeMove(ChessMove move, String authToken, int gameID, Session session) throws DataAccessException, InvalidMoveException, IOException {
+    private void makeMove(ChessMove move,
+                          String authToken,
+                          int gameID,
+                          Session session) throws DataAccessException, InvalidMoveException, IOException {
         authorize(session, authToken);
         GameData gameData = gameDataAccess.getGame(gameID);
         ChessGame game = gameData.game();
