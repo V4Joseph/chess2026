@@ -33,18 +33,19 @@ public class Client implements ServerMessageObserver {
             switch (serverMessage.getServerMessageType()) {
                 case NOTIFICATION -> displayNotification(serverMessage.getMessage());
                 case ERROR -> displayError(serverMessage);
-                case LOAD_GAME -> loadGame(serverMessage.getGame());
+                case LOAD_GAME -> loadGame(serverMessage.getGame(), serverMessage.getColor());
             }
         }
 
         public void displayNotification(String message) {
-
+            System.out.println(message);
         }
         public void displayError(ServerMessage serverMessage) {
             serverMessage.setErrorMessage(serverMessage.getMessage());
+            System.out.println("Error: " + serverMessage.getErrorMessage());
         }
-        public void loadGame(ChessGame game) {
-
+        public void loadGame(ChessGame game, ChessGame.TeamColor color) {
+            drawBoard(System.out, game.getBoard(),color.name());
         }
 
         public void run() {

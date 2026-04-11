@@ -44,7 +44,7 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
-
+}
 //    public void enterPetShop(String visitorName) throws ResponseException {
 //        try {
 //            var action = new Action(Action.Type.ENTER, visitorName);
@@ -63,5 +63,5 @@ public class WebSocketFacade extends Endpoint {
 //        }
 //    }
 
-}
+
 
