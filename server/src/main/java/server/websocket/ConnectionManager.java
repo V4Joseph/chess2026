@@ -14,25 +14,34 @@ public class ConnectionManager {
     public final Map<Integer,Set<Session>> gameSessions = new HashMap<>();
 
     public void add(int gameID, Session session) {
-        Set<Session> sessionSet = gameSessions.get(gameID);
-        sessionSet.add(session);
-        gameSessions.put(gameID,sessionSet);
+        gameSessions.computeIfAbsent(gameID, k -> new HashSet<>()).add(session);
     }
 
-    public void remove(int gameID) {
-        gameSessions.remove(gameID);
+    public void remove(int gameID, Session session) {
+        Set<Session> sessions = gameSessions.get(gameID);
+        if (sessions != null) {
+            sessions.remove(session);
+            if (sessions.isEmpty()) {
+                gameSessions.remove(gameID);
+            }
+        }
     }
 
-    public void broadcast(Session excludeSession, ServerMessage message) throws IOException {
+    public void broadcast(int gameID, Session excludeSession, ServerMessage message) throws IOException {
         String msg = message.toString();
-        for (Set<Session> s : gameSessions.values()) {
-            for (Session c : s) {
+        Set<Session> sessions = gameSessions.get(gameID);
+            for (Session c : sessions) {
             if (c.isOpen()) {
-                if (!c.equals(excludeSession)) {
+                if (!c.equals(excludeSession) && c.isOpen()) {
                     c.getRemote().sendString(msg);
                 }
-                }
             }
+        }
+    }
+
+    public void singleSend(Session session, ServerMessage message) throws IOException {
+        if (session.isOpen()) {
+            session.getRemote().sendString(message.toString());
         }
     }
 }

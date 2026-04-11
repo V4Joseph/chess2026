@@ -5,6 +5,7 @@ import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import model.GameData;
+import server.websocket.WebSocketHandler;
 import service.GameService;
 import model.requestsandresults.*;
 import service.ServiceException;
@@ -23,6 +24,7 @@ public class Server{
     GameDataAccess gameDataAccess = new GameDataSql();
     UserService userService = new UserService(userDataAccess, authDataAccess);
     GameService gameService = new GameService(gameDataAccess,authDataAccess);
+    WebSocketHandler webSocketHandler = new WebSocketHandler();
 
     public Server(){
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
@@ -34,9 +36,9 @@ public class Server{
                 .post("/game", this::createGame)
                 .put("/game", this::joinGame)
                 .ws("/ws",ws -> {
-                    ws.onConnect(ctx -> System.out.println("Websocket connected"));
-                    ws.onMessage(ctx -> ctx.send("Websocket response: " + ctx.message()));
-                    ws.onClose(ctx -> System.out.println("Websocket closed"));
+                    ws.onConnect(webSocketHandler::handleConnect);
+                    ws.onMessage(webSocketHandler::handleMessage);
+                    ws.onClose(webSocketHandler::handleClose);
                 })
                 .exception(Exception.class, (e,context) -> {
                     context.status(500);
