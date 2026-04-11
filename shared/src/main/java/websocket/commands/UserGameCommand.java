@@ -1,6 +1,7 @@
 package websocket.commands;
 
 import chess.ChessMove;
+import com.google.gson.Gson;
 
 import java.util.Objects;
 
@@ -45,6 +46,9 @@ public class UserGameCommand {
         return gameID;
     }
     public ChessMove getMove() {return move;}
+
+    public String toString() {return new Gson().toJson(this);
+    }
 
     @Override
     public boolean equals(Object o) {
