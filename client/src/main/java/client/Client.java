@@ -24,6 +24,7 @@ public class Client implements ServerMessageObserver {
         private State state = State.SIGNEDOUT;
         private final ConsoleBoard board;
         private  int maxGameNum;
+        private int currentGameID;
         private String serverURL;
         private  Map<Integer, Integer> gameNum = new HashMap<>();
 
@@ -187,6 +188,7 @@ public class Client implements ServerMessageObserver {
         state = State.INGAME;
         try {
             gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
+            currentGameID = gameID;
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError, "Invalid Input");
         }
@@ -221,6 +223,7 @@ public class Client implements ServerMessageObserver {
         System.out.println("Please enter the number of the game you want to observe");
         try {
             gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
+            currentGameID = gameID;
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ServerError, "Invalid Input");
         }
@@ -241,14 +244,17 @@ public class Client implements ServerMessageObserver {
         public String redraw() {
 
         }
-        public String leave() {
-
+        public String leave() throws IOException {
+            webSocketFacade.leave(authToken, currentGameID);
+            state = State.SIGNEDIN;
+            return "Succesfully left the game";
         }
         public String move() {
 
         }
-        public String resign() {
-
+        public String resign() throws IOException {
+            webSocketFacade.resign(authToken,currentGameID);
+            return "Resigned from game";
         }
         public String highlight() {
 
