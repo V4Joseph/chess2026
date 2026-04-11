@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.*;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import client.websocket.PlayerColor;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketFacade;
@@ -229,6 +232,7 @@ public class Client implements ServerMessageObserver {
     public String observeGame() throws ResponseException{
             int gameID;
         assertSignedIn();
+        state = State.INGAME;
         playerColor = PlayerColor.White;
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter the number of the game you want to observe");
@@ -264,10 +268,40 @@ public class Client implements ServerMessageObserver {
             state = State.SIGNEDIN;
             return "Succesfully left the game";
         }
-        public String move() throws ResponseException {
+        public String move() throws ResponseException, IOException {
             assertInGame();
-
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Please enter the start and end position for your move (e2 e3)");
+            String[] inputs = scanner.nextLine().split(" ");
+            if (inputs.length <2) {
+                return "Error: Invalid input, missing a position";
+            }
+            ChessPosition startPosition = findPosition(inputs[0]);
+            ChessPosition endPosition = findPosition(inputs[1]);
+            ChessPiece.PieceType promotion = null;
+            if ((endPosition.getRow() == 1 || endPosition.getRow() == 8) && currentGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN) {
+                System.out.println("Please enter the promotion piece");
+                String input = scanner.nextLine();
+                if ((ChessPiece.PieceType.valueOf(input.toUpperCase()) != ChessPiece.PieceType.QUEEN) &&
+                        (ChessPiece.PieceType.valueOf(input.toUpperCase()) != ChessPiece.PieceType.BISHOP) &&
+                        (ChessPiece.PieceType.valueOf(input.toUpperCase()) != ChessPiece.PieceType.KNIGHT) &&
+                        (ChessPiece.PieceType.valueOf(input.toUpperCase()) != ChessPiece.PieceType.ROOK)
+                ) {
+                    return "Error: Invalid Promotion";
+                }
+                promotion = (ChessPiece.PieceType.valueOf(input.toUpperCase()));
+            }
+            ChessMove move = new ChessMove(startPosition, endPosition, promotion);
+            webSocketFacade.makeMove(authToken,currentGameID,move);
+            return "";
         }
+
+        private ChessPosition findPosition(String position) {
+            int col = position.charAt(0) - 'a' +1;
+            int row = position.charAt(1) - '0';
+            return new ChessPosition(row,col);
+        }
+
         public String resign() throws IOException, ResponseException {
             assertInGame();
             webSocketFacade.resign(authToken,currentGameID);
@@ -276,6 +310,7 @@ public class Client implements ServerMessageObserver {
         public String highlight() throws ResponseException {
             assertInGame();
 
+            return "";
         }
 
         public String help() {
