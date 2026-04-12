@@ -1,12 +1,10 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static ui.EscapeSequences.*;
 
@@ -23,16 +21,17 @@ public class ConsoleBoard {
         ChessBoard chessBoard = new ChessBoard();
         chessBoard.resetBoard();
         out.print(ERASE_SCREEN);
-        drawBoard(out, chessBoard, args[0]);
+        drawBoard(out, chessBoard, args[0], null);
         out.print(RESET_BG_COLOR);
         out.print(SET_TEXT_COLOR_WHITE);
     }
 
-    public static void drawBoard(PrintStream out, ChessBoard chessBoard, String color) {
+    public static void drawBoard(PrintStream out, ChessBoard chessBoard, String color, Collection<ChessMove> validMoveList) {
         drawHeaderLine(out, color);
-        drawChessBoard(out, chessBoard,color);
+        drawChessBoard(out, chessBoard,color, validMoveList);
         drawHeaderLine(out, color);
     }
+
 
     private static void drawHeaderLine(PrintStream out, String color) {
 
@@ -68,7 +67,7 @@ public class ConsoleBoard {
         setGray(out);
     }
 
-    private static void drawChessBoard(PrintStream out, ChessBoard chessBoard, String color) {
+    private static void drawChessBoard(PrintStream out, ChessBoard chessBoard, String color, Collection<ChessMove> validMoveList) {
         for (int boardRow = 0; boardRow < BOARD_SIZE_IN_SQUARES; ++boardRow) {
             int label;
             if (color.equalsIgnoreCase("White")) {
@@ -76,11 +75,11 @@ public class ConsoleBoard {
             } else {
                 label = boardRow+1;
             }
-            drawRowOfSquares(out, boardRow, label, chessBoard, color);
+            drawRowOfSquares(out, boardRow, label, chessBoard, color,validMoveList);
         }
     }
 
-    private static void drawRowOfSquares(PrintStream out, int boardRow, int label, ChessBoard chessBoard, String color) {
+    private static void drawRowOfSquares(PrintStream out, int boardRow, int label, ChessBoard chessBoard, String color, Collection<ChessMove> validMoveList) {
         for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; squareRow++) {
             int shift = 0;
             ChessPosition position;
@@ -102,6 +101,16 @@ public class ConsoleBoard {
                     out.print(SET_BG_COLOR_DARK_GREEN);
 
                 }
+                if (validMoveList != null) {
+                    for (ChessMove m : validMoveList) {
+                        int row = m.getEndPosition().getRow();
+                        int col = m.getEndPosition().getColumn();
+                        if (boardCol == col && boardRow == row) {
+                            out.println(SET_BG_COLOR_YELLOW);
+                        }
+                    }
+                }
+
                 if (shift == 0) {
                     position = new ChessPosition(7-boardRow+1,boardCol+1);
                 } else {

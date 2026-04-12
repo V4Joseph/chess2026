@@ -59,7 +59,7 @@ public class Client implements ServerMessageObserver {
         public void loadGame(ChessGame game, ChessGame.TeamColor color) {
             currentGame = game;
             String colorName = (color != null) ? color.name() : "WHITE";
-            drawBoard(System.out, game.getBoard(),colorName);
+            drawBoard(System.out, game.getBoard(),colorName, null);
         }
 
         public void run() {
@@ -259,7 +259,7 @@ public class Client implements ServerMessageObserver {
         public String redraw() throws ResponseException {
             assertInGame();
             String colorName = (playerColor == PlayerColor.Black) ? "BLACK" : "WHITE";
-            drawBoard(System.out, currentGame.getBoard(), colorName);
+            drawBoard(System.out, currentGame.getBoard(), colorName, null);
             return "";
         }
         public String leave() throws IOException, ResponseException {
@@ -293,11 +293,13 @@ public class Client implements ServerMessageObserver {
                 promotion = (ChessPiece.PieceType.valueOf(input.toUpperCase()));
             }
             ChessMove move = new ChessMove(startPosition, endPosition, promotion);
+            // Does this check if move is valid?
             webSocketFacade.makeMove(authToken,currentGameID,move);
             return "";
         }
 
         private ChessPosition findPosition(String position) {
+            // Need to add check that position is valid
             int col = position.charAt(0) - 'a' +1;
             int row = position.charAt(1) - '0';
             return new ChessPosition(row,col);
@@ -310,7 +312,13 @@ public class Client implements ServerMessageObserver {
         }
         public String highlight() throws ResponseException {
             assertInGame();
-
+            String colorName = (playerColor == PlayerColor.Black) ? "BLACK" : "WHITE";
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Please enter the position of the piece you wish to highlight possible moves for (ex. h3)");
+            String input = scanner.nextLine();
+            ChessPosition piecePosition = findPosition(input);
+            Collection<ChessMove> validMoveList = currentGame.validMoves(piecePosition);
+            drawBoard(System.out, currentGame.getBoard(), colorName, validMoveList);
             return "";
         }
 
