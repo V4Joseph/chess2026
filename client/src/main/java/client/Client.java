@@ -287,6 +287,9 @@ public class Client implements ServerMessageObserver {
             ChessPosition startPosition = findMovePosition(inputs[0]);
             ChessPosition endPosition = findMovePosition(inputs[1]);
             ChessPiece.PieceType promotion = null;
+            if (!currentGame.getBoard().getPiece(startPosition).getTeamColor().name().equalsIgnoreCase(playerColor.name())) {
+                return "Error: Wrong color piece";
+            }
             if ((endPosition.getRow() == 1 || endPosition.getRow() == 8) &&
                     currentGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN) {
                 System.out.println("Please enter the promotion piece");
@@ -326,7 +329,9 @@ public class Client implements ServerMessageObserver {
             String input = scanner.nextLine();
             if (!input.equalsIgnoreCase("yes")) return "";
             webSocketFacade.resign(authToken,currentGameID);
-            state = State.SIGNEDIN;
+            if (currentGame.isGameOver()) {
+                return "";
+            }
             return "Resigned from game";
         }
         public String highlight() throws ResponseException {

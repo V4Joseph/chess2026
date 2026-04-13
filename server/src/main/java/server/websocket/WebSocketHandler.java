@@ -82,9 +82,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     public String getName(int row, int col) {
-        System.out.println(col);
-        System.out.println(row);
-
         return String.format(colLetters[col] + row);
     }
 
@@ -93,6 +90,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                           int gameID,
                           Session session, ChessGame.TeamColor color) throws DataAccessException, InvalidMoveException, IOException, ResponseException {
         authorize(session, authToken, gameID);
+        int foundMove = 0;
         GameData gameData = gameDataAccess.getGame(gameID);
         ChessGame game = gameData.game();
         String username = authDataAccess.getAuth(authToken).username();
@@ -130,14 +128,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             } else {
                 ChessBoard board = game.getBoard();
                 String pieceName = board.getPiece(move.getStartPosition()).getPieceType().toString();
-                String startPosition;
+                String startPosition= getName(startRow,startCol);;
                 String endPosition;
                 if (color == ChessGame.TeamColor.BLACK) {
-                    startPosition = getName(startRow,startCol);
-                    endPosition = getName(endRow, endCol+1);
+                    endPosition = getName(endRow, endCol);
                 } else {
-                    startPosition = getName(startRow,startCol);
-                    endPosition = getName(endRow, endCol-1);
+                    endPosition = getName(endRow, endCol);
                 }
 
                 for (ChessMove m : game.validMoves(move.getStartPosition())) {
@@ -153,8 +149,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                         connections.broadcast(gameID,session,loadOtherMessage);
                         connections.broadcast(gameID,session,notifyMessage);
                         specialBroadcast(gameID, username, game, gameData);
+                        foundMove = 1;
                     }
                 }
+            }
+            if (foundMove == 0) {
+                ServerMessage errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR,"Invalid Move",null,null,"Error: Invalid Move");
+                connections.broadcast(gameID,session,errorMsg);
             }
         }
     }
