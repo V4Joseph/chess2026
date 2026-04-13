@@ -306,31 +306,14 @@ public class Client implements ServerMessageObserver {
             return "";
         }
 
-        private ChessPosition findHighlightPosition(String position) throws ResponseException {
-            // Need to add check that position is valid
-            int row;
-            int col;
-            try {
-                if (playerColor == PlayerColor.Black) {
-                    col = 8 - (position.charAt(0) - 'a');
-                    row = position.charAt(1) - '0';
-                } else {
-                    col = position.charAt(0) - 'a' + 1;
-                    row = 9 - (position.charAt(1) - '0');
-                }
-                return new ChessPosition(row, col);
-            } catch (Exception e) {
-                throw new ResponseException(ResponseException.Code.ClientError, "Invalid Input");
-            }
-        }
+
     private ChessPosition findMovePosition(String position) throws ResponseException {
-        // Need to add check that position is valid
+        // Need to add check that position is valid, try map
         int row;
         int col;
         try {
                 col = position.charAt(0) - 'a' + 1;
                 row = (position.charAt(1) - '0');
-
             return new ChessPosition(row, col);
         } catch (Exception e) {
             throw new ResponseException(ResponseException.Code.ClientError, "Invalid Input");
@@ -339,6 +322,9 @@ public class Client implements ServerMessageObserver {
 
         public String resign() throws IOException, ResponseException {
             assertInGame();
+            System.out.println("Are you sure you want to resign? (Yes / No)");
+            String input = scanner.nextLine();
+            if (!input.equalsIgnoreCase("yes")) return "";
             webSocketFacade.resign(authToken,currentGameID);
             state = State.SIGNEDIN;
             return "Resigned from game";
@@ -349,7 +335,13 @@ public class Client implements ServerMessageObserver {
 
             System.out.println("Please enter the position of the piece you wish to highlight possible moves for (ex. h3)");
             String input = scanner.nextLine();
-            ChessPosition piecePosition = findHighlightPosition(input);
+            ChessPosition piecePosition = findMovePosition(input);
+            if (piecePosition.getRow() < 1 ||
+                piecePosition.getRow() > 8 ||
+                piecePosition.getColumn() < 1 ||
+                piecePosition.getColumn() > 8) {
+                return "Error: Invalid Input";
+            }
             Collection<ChessMove> validMoveList = currentGame.validMoves(piecePosition);
             drawBoard(System.out, currentGame.getBoard(), colorName, validMoveList);
             return "";

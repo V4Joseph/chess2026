@@ -101,8 +101,13 @@ public class ConsoleBoard {
                 highlight = 0;
                 if (validMoveList != null) {
                     for (ChessMove m : validMoveList) {
-                        int row = m.getEndPosition().getRow() - 1;
+                        int row = m.getEndPosition().getRow();
                         int col = m.getEndPosition().getColumn() - 1;
+                        if (color.equalsIgnoreCase("black")) {
+                            col = 9 - col;
+                        } else {
+                            row = 8-row;
+                        }
                         if (boardCol == col && boardRow == row) {
                             out.print(SET_BG_COLOR_YELLOW);
                             highlight = 1;

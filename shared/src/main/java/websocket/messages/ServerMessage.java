@@ -24,11 +24,12 @@ public class ServerMessage {
         NOTIFICATION
     }
 
-    public ServerMessage(ServerMessageType type, String message, ChessGame game, ChessGame.TeamColor color) {
+    public ServerMessage(ServerMessageType type, String message, ChessGame game, ChessGame.TeamColor color, String errorMessage) {
         this.serverMessageType = type;
         this.message = message;
         this.game = game;
         this.color = color;
+        this.errorMessage = errorMessage;
     }
 
     public void setErrorMessage(String message) {

@@ -29,14 +29,18 @@ public class ConnectionManager {
 
     public void broadcast(int gameID, Session excludeSession, ServerMessage message) throws IOException {
         String msg = message.toString();
-        Set<Session> sessions = gameSessions.get(gameID);
-        if (sessions == null) return;
-        for (Session c : sessions) {
-        if (c.isOpen()) {
-            if (!c.equals(excludeSession) && c.isOpen()) {
-                c.getRemote().sendString(msg);
+        if (message.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+            excludeSession.getRemote().sendString(msg);
+        } else {
+            Set<Session> sessions = gameSessions.get(gameID);
+            if (sessions == null) return;
+            for (Session c : sessions) {
+                if (c.isOpen()) {
+                    if (!c.equals(excludeSession)) {
+                        c.getRemote().sendString(msg);
+                    }
+                }
             }
-        }
         }
     }
 
