@@ -1,5 +1,6 @@
 package client.websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -48,19 +49,19 @@ public class WebSocketFacade extends Endpoint {
     }
 
     public void connect(String authToken, int gameID) throws IOException {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID,null);
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID,null, null);
         session.getBasicRemote().sendText(new Gson().toJson(command));
     }
-    public void makeMove(String authToken, int gameID, ChessMove move) throws IOException {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
+    public void makeMove(String authToken, int gameID, ChessMove move, ChessGame.TeamColor color) throws IOException {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move, color);
         session.getBasicRemote().sendText(new Gson().toJson(command));
     }
     public void leave(String authToken, int gameID) throws IOException {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, null);
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, null, null);
         session.getBasicRemote().sendText(new Gson().toJson(command));
     }
     public void resign(String authToken, int gameID) throws IOException {
-        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID, null);
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID, null, null);
         session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 }

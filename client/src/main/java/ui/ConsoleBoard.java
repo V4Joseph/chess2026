@@ -12,6 +12,7 @@ public class ConsoleBoard {
     // Board dimensions.
     private static final int BOARD_SIZE_IN_SQUARES = 8;
     private static final int SQUARE_SIZE_IN_PADDED_CHARS = 1;
+    private static int highlight = 0;
 
     // Padded characters.
     private static final String EMPTY = "\u3000\u3000\u2009";
@@ -27,9 +28,12 @@ public class ConsoleBoard {
     }
 
     public static void drawBoard(PrintStream out, ChessBoard chessBoard, String color, Collection<ChessMove> validMoveList) {
+        System.out.println("\n");
         drawHeaderLine(out, color);
         drawChessBoard(out, chessBoard,color, validMoveList);
         drawHeaderLine(out, color);
+        out.print(RESET_BG_COLOR);
+        out.print(SET_TEXT_COLOR_WHITE);
     }
 
 
@@ -94,22 +98,25 @@ public class ConsoleBoard {
             }
 
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-                if ((boardCol + boardRow) % 2 == 0) {
-                    out.print(SET_BG_COLOR_MAGENTA);
-
-                } else {
-                    out.print(SET_BG_COLOR_DARK_GREEN);
-
-                }
+                highlight = 0;
                 if (validMoveList != null) {
                     for (ChessMove m : validMoveList) {
-                        int row = m.getEndPosition().getRow();
-                        int col = m.getEndPosition().getColumn();
+                        int row = m.getEndPosition().getRow() - 1;
+                        int col = m.getEndPosition().getColumn() - 1;
                         if (boardCol == col && boardRow == row) {
-                            out.println(SET_BG_COLOR_YELLOW);
+                            out.print(SET_BG_COLOR_YELLOW);
+                            highlight = 1;
                         }
                     }
                 }
+                if ((boardCol + boardRow) % 2 == 0 && highlight == 0) {
+                    out.print(SET_BG_COLOR_MAGENTA);
+
+                } else if (highlight == 0){
+                    out.print(SET_BG_COLOR_DARK_GREEN);
+
+                }
+
 
                 if (shift == 0) {
                     position = new ChessPosition(7-boardRow+1,boardCol+1);

@@ -30,18 +30,23 @@ public class ConnectionManager {
     public void broadcast(int gameID, Session excludeSession, ServerMessage message) throws IOException {
         String msg = message.toString();
         Set<Session> sessions = gameSessions.get(gameID);
-            for (Session c : sessions) {
-            if (c.isOpen()) {
-                if (!c.equals(excludeSession) && c.isOpen()) {
-                    c.getRemote().sendString(msg);
-                }
+        if (sessions == null) return;
+        for (Session c : sessions) {
+        if (c.isOpen()) {
+            if (!c.equals(excludeSession) && c.isOpen()) {
+                c.getRemote().sendString(msg);
             }
+        }
         }
     }
 
     public void singleSend(Session session, ServerMessage message) throws IOException {
         if (session.isOpen()) {
-            session.getRemote().sendString(message.toString());
+            if (message.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+                session.getRemote().sendString(message.getErrorMessage());
+            } else {
+                session.getRemote().sendString(message.toString());
+            }
         }
     }
 }

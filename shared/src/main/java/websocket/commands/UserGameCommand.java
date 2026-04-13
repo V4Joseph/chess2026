@@ -1,5 +1,6 @@
 package websocket.commands;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 
@@ -21,11 +22,14 @@ public class UserGameCommand {
 
     private final ChessMove move;
 
-    public UserGameCommand(CommandType commandType, String authToken, Integer gameID, ChessMove move) {
+    private final ChessGame.TeamColor color;
+
+    public UserGameCommand(CommandType commandType, String authToken, Integer gameID, ChessMove move, ChessGame.TeamColor color) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
         this.move = move;
+        this.color = color;
     }
 
     public enum CommandType {
@@ -46,6 +50,7 @@ public class UserGameCommand {
         return gameID;
     }
     public ChessMove getMove() {return move;}
+    public ChessGame.TeamColor getColor() {return color;}
 
     public String toString() {return new Gson().toJson(this);
     }

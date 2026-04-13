@@ -33,11 +33,13 @@ public class Client implements ServerMessageObserver {
         private String serverURL;
         private  Map<Integer, Integer> gameNum = new HashMap<>();
         private ChessGame currentGame;
+        private final Scanner scanner = new Scanner(System.in);
 
         public Client(String serverUrl) throws ResponseException {
             facade = new ServerFacade(serverUrl);
             board = new ConsoleBoard();
             serverURL = serverUrl;
+            facade.delete();
         }
 
         @Override
@@ -45,7 +47,7 @@ public class Client implements ServerMessageObserver {
             switch (serverMessage.getServerMessageType()) {
                 case NOTIFICATION -> displayNotification(serverMessage.getMessage());
                 case ERROR -> displayError(serverMessage);
-                case LOAD_GAME -> loadGame(serverMessage.getGame(), serverMessage.getColor());
+                case LOAD_GAME -> loadGame(serverMessage.getGame());
             }
         }
 
@@ -56,9 +58,9 @@ public class Client implements ServerMessageObserver {
             serverMessage.setErrorMessage(serverMessage.getMessage());
             System.out.println("Error: " + serverMessage.getErrorMessage());
         }
-        public void loadGame(ChessGame game, ChessGame.TeamColor color) {
+        public void loadGame(ChessGame game) {
             currentGame = game;
-            String colorName = (color != null) ? color.name() : "WHITE";
+            String colorName = playerColor.name();
             drawBoard(System.out, game.getBoard(),colorName, null);
         }
 
@@ -66,7 +68,6 @@ public class Client implements ServerMessageObserver {
             System.out.println("Welcome to Chess");
             System.out.print(help());
 
-            Scanner scanner = new Scanner(System.in);
             var result = "";
             while (!"quit".equals(result)) {
                 printPrompt();
@@ -119,7 +120,7 @@ public class Client implements ServerMessageObserver {
 
         public String login(String... params) throws ResponseException {
             System.out.println("Please enter your username");
-            Scanner scanner = new Scanner(System.in);
+
             String username = scanner.nextLine();
             System.out.println("Please enter your password");
             String password = scanner.nextLine();
@@ -137,13 +138,13 @@ public class Client implements ServerMessageObserver {
         }
 
     public String register(String... params) throws ResponseException {
-        Scanner regScan = new Scanner(System.in);
+
         System.out.println("Please enter a username");
-        String username = regScan.nextLine();
+        String username = scanner.nextLine();
         System.out.println("Please enter a password");
-        String password = regScan.nextLine();
+        String password = scanner.nextLine();
         System.out.println("Please enter an email");
-        String email = regScan.nextLine();
+        String email = scanner.nextLine();
 
         if ((!Objects.equals(password, "")) && (!Objects.equals(username, "")) && (!Objects.equals(email, ""))) {
             RegisterRequest registerRequest = new RegisterRequest(username, password, email);
@@ -191,7 +192,7 @@ public class Client implements ServerMessageObserver {
     public String joinGame() throws ResponseException, IOException {
         int gameID;
         assertSignedIn();
-        Scanner scanner = new Scanner(System.in);
+
         System.out.println("Please enter the number of the game you want to join");
         state = State.INGAME;
         try {
@@ -218,7 +219,7 @@ public class Client implements ServerMessageObserver {
 
     public String createGame() throws ResponseException{
         assertSignedIn();
-        Scanner scanner = new Scanner(System.in);
+
         System.out.println("Please enter the name of the game you want to create");
         String gameName = scanner.nextLine();
         CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
@@ -226,15 +227,16 @@ public class Client implements ServerMessageObserver {
         if (maxGameNum < createGameResult.gameID()) {
             maxGameNum = createGameResult.gameID();
         }
+        gameNum.put(maxGameNum,createGameResult.gameID());
         return String.format("Created Game: %s ",gameName);
     }
 
-    public String observeGame() throws ResponseException{
+    public String observeGame() throws ResponseException, IOException {
             int gameID;
         assertSignedIn();
         state = State.INGAME;
         playerColor = PlayerColor.White;
-        Scanner scanner = new Scanner(System.in);
+
         System.out.println("Please enter the number of the game you want to observe");
         try {
             gameID = gameNum.get(Integer.parseInt(scanner.nextLine()));
@@ -244,8 +246,9 @@ public class Client implements ServerMessageObserver {
         }
             String[] perspective = {"white"};
             ConsoleBoard.main(perspective);
-            return String.format("Now observing game #%d", gameID);
-
+        webSocketFacade = new WebSocketFacade(serverURL, this);
+        webSocketFacade.connect(authToken, gameID);
+        return String.format("Now observing game #%d", gameID);
     }
 
         public String logout() throws ResponseException {
@@ -270,14 +273,19 @@ public class Client implements ServerMessageObserver {
         }
         public String move() throws ResponseException, IOException {
             assertInGame();
-            Scanner scanner = new Scanner(System.in);
+            if (currentGame.isGameOver()) {
+                return "Error: Game Over";
+            }
+            if (!currentGame.getTeamTurn().name().equalsIgnoreCase(playerColor.name())) {
+                return "Error: Not your turn";
+            }
             System.out.println("Please enter the start and end position for your move (e2 e3)");
             String[] inputs = scanner.nextLine().split(" ");
             if (inputs.length <2) {
                 return "Error: Invalid input, missing a position";
             }
-            ChessPosition startPosition = findPosition(inputs[0]);
-            ChessPosition endPosition = findPosition(inputs[1]);
+            ChessPosition startPosition = findMovePosition(inputs[0]);
+            ChessPosition endPosition = findMovePosition(inputs[1]);
             ChessPiece.PieceType promotion = null;
             if ((endPosition.getRow() == 1 || endPosition.getRow() == 8) &&
                     currentGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN) {
@@ -294,29 +302,54 @@ public class Client implements ServerMessageObserver {
             }
             ChessMove move = new ChessMove(startPosition, endPosition, promotion);
             // Does this check if move is valid?
-            webSocketFacade.makeMove(authToken,currentGameID,move);
+            webSocketFacade.makeMove(authToken,currentGameID,move, ChessGame.TeamColor.valueOf(playerColor.name().toUpperCase()));
             return "";
         }
 
-        private ChessPosition findPosition(String position) {
+        private ChessPosition findHighlightPosition(String position) throws ResponseException {
             // Need to add check that position is valid
-            int col = position.charAt(0) - 'a' +1;
-            int row = position.charAt(1) - '0';
-            return new ChessPosition(row,col);
+            int row;
+            int col;
+            try {
+                if (playerColor == PlayerColor.Black) {
+                    col = 8 - (position.charAt(0) - 'a');
+                    row = position.charAt(1) - '0';
+                } else {
+                    col = position.charAt(0) - 'a' + 1;
+                    row = 9 - (position.charAt(1) - '0');
+                }
+                return new ChessPosition(row, col);
+            } catch (Exception e) {
+                throw new ResponseException(ResponseException.Code.ClientError, "Invalid Input");
+            }
         }
+    private ChessPosition findMovePosition(String position) throws ResponseException {
+        // Need to add check that position is valid
+        int row;
+        int col;
+        try {
+                col = position.charAt(0) - 'a' + 1;
+                row = (position.charAt(1) - '0');
+
+            return new ChessPosition(row, col);
+        } catch (Exception e) {
+            throw new ResponseException(ResponseException.Code.ClientError, "Invalid Input");
+        }
+    }
 
         public String resign() throws IOException, ResponseException {
             assertInGame();
             webSocketFacade.resign(authToken,currentGameID);
+            state = State.SIGNEDIN;
             return "Resigned from game";
         }
         public String highlight() throws ResponseException {
             assertInGame();
             String colorName = (playerColor == PlayerColor.Black) ? "BLACK" : "WHITE";
-            Scanner scanner = new Scanner(System.in);
+
             System.out.println("Please enter the position of the piece you wish to highlight possible moves for (ex. h3)");
             String input = scanner.nextLine();
-            ChessPosition piecePosition = findPosition(input);
+            ChessPosition piecePosition = findHighlightPosition(input);
             Collection<ChessMove> validMoveList = currentGame.validMoves(piecePosition);
             drawBoard(System.out, currentGame.getBoard(), colorName, validMoveList);
             return "";
